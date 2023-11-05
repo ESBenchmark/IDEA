@@ -1,5 +1,6 @@
 package com.kaciras.esbench;
 
+import com.intellij.execution.PsiLocation;
 import com.intellij.execution.lineMarker.RunLineMarkerContributor;
 import com.intellij.icons.AllIcons;
 import com.intellij.lang.javascript.psi.JSCallExpression;
@@ -18,7 +19,10 @@ public class RunLineMarker extends RunLineMarkerContributor {
 		if (!call.getMethodExpression().getText().equals("defineSuite")) {
 			return null;
 		}
-		var name = call.getContainingFile().getName();
+		var children = call.getContainingFile().getChildren();
+
+		var location = new PsiLocation(call);
+		var name = location.getVirtualFile().getPath();
 		var action = new ESBenchAction(name);
 		return new Info(AllIcons.RunConfigurations.TestState.Run, new AnAction[]{action}, null);
 	}

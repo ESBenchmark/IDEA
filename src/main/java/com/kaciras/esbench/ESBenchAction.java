@@ -1,10 +1,14 @@
 package com.kaciras.esbench;
 
-import com.intellij.execution.dashboard.actions.RunAction;
+import com.intellij.execution.ExecutionException;
+import com.intellij.execution.actions.ConfigurationContext;
+import com.intellij.execution.executors.DefaultRunExecutor;
+import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import org.jetbrains.annotations.NotNull;
 
-public class ESBenchAction extends RunAction {
+public class ESBenchAction extends AnAction {
 
 	private final String file;
 
@@ -14,6 +18,21 @@ public class ESBenchAction extends RunAction {
 
 	@Override
 	public void actionPerformed(@NotNull AnActionEvent e) {
+		var context = ConfigurationContext.getFromContext(e.getDataContext(), e.getPlace());
+		var producer = new RunConfigProducer();
 
+		var config = producer.findOrCreateConfigurationFromContext(context);
+		if (config == null) {
+			return;
+		}
+
+		var settings = config.getConfigurationSettings();
+		context.getRunManager().setTemporaryConfiguration(settings);
+
+		try {
+			ExecutionEnvironmentBuilder.create(e.getProject(), DefaultRunExecutor.getRunExecutorInstance(), settings.getConfiguration()).buildAndExecute();
+		} catch (ExecutionException ex) {
+			throw new RuntimeException(ex);
+		}
 	}
 }
