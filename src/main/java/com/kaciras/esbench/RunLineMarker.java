@@ -3,6 +3,7 @@ package com.kaciras.esbench;
 import com.intellij.execution.PsiLocation;
 import com.intellij.execution.lineMarker.RunLineMarkerContributor;
 import com.intellij.icons.AllIcons;
+import com.intellij.lang.ecmascript6.psi.JSExportAssignment;
 import com.intellij.lang.ecmascript6.psi.impl.ES6ImportPsiUtil;
 import com.intellij.lang.javascript.psi.JSCallExpression;
 import com.intellij.lang.javascript.psi.JSReferenceExpression;
@@ -25,6 +26,9 @@ public class RunLineMarker extends RunLineMarkerContributor {
 			return null;
 		}
 		if (!ref.textMatches(DEFINITION) || !(ref.getParent() instanceof JSCallExpression call)) {
+			return null;
+		}
+		if (!(call.getParent() instanceof JSExportAssignment)) {
 			return null;
 		}
 		if (!hasImportFromESBench(element.getContainingFile())) {
