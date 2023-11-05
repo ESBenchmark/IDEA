@@ -5,11 +5,14 @@ import com.intellij.execution.actions.LazyRunConfigurationProducer;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.lang.javascript.buildTools.npm.PackageJsonUtil;
 import com.intellij.openapi.util.Ref;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.psi.PsiElement;
 import com.jetbrains.nodejs.run.NodeJsRunConfiguration;
 import com.jetbrains.nodejs.run.NodeJsRunConfigurationType;
 import org.jetbrains.annotations.NotNull;
+
+import java.nio.file.Path;
 
 public class RunConfigProducer extends LazyRunConfigurationProducer<NodeJsRunConfiguration> {
 	@NotNull
@@ -36,10 +39,10 @@ public class RunConfigProducer extends LazyRunConfigurationProducer<NodeJsRunCon
 		var dir = packageJson.getParent().getPath();
 		var filename = VfsUtil.getRelativePath(vFile, packageJson.getParent());
 
-		configuration.setName("ESBench plugin test");
+		configuration.setName("ESBench " + filename);
 		configuration.setWorkingDirectory(dir);
 		configuration.setMainScriptFilePath(dir + "/node_modules/@esbench/core/bin/cli.js");
-		configuration.setApplicationParameters("--file " + filename);
+		configuration.setApplicationParameters("--file \"" + filename + '"');
 
 		return true;
 	}
@@ -57,6 +60,14 @@ public class RunConfigProducer extends LazyRunConfigurationProducer<NodeJsRunCon
 		if (file == null || !file.isInLocalFileSystem()) {
 			return false;
 		}
-		return false;
+		var params = configuration.getApplicationParameters();
+		var dir = configuration.getWorkingDirectory();
+
+		if (params == null || dir == null) {
+			return false;
+		}
+		var relative = Path.of(dir).relativize(Path.of(file.getPath())).toString();
+		relative = FileUtil.toSystemIndependentName(relative);
+		return params.contains("--file \"" + relative + '"');
 	}
 }
