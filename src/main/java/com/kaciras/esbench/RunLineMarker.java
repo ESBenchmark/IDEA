@@ -5,6 +5,7 @@ import com.intellij.execution.lineMarker.RunLineMarkerContributor;
 import com.intellij.icons.AllIcons;
 import com.intellij.lang.ecmascript6.psi.impl.ES6ImportPsiUtil;
 import com.intellij.lang.javascript.psi.JSCallExpression;
+import com.intellij.lang.javascript.psi.JSReferenceExpression;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -20,10 +21,10 @@ public class RunLineMarker extends RunLineMarkerContributor {
 
 	@Override
 	public @Nullable Info getInfo(@NotNull PsiElement element) {
-		if (!(element instanceof JSCallExpression call)) {
+		if (!(element.getParent() instanceof JSReferenceExpression ref)) {
 			return null;
 		}
-		if (!call.getMethodExpression().textMatches(DEFINITION)) {
+		if (!ref.textMatches(DEFINITION) || !(ref.getParent() instanceof JSCallExpression call)) {
 			return null;
 		}
 		if (!hasImportFromESBench(element.getContainingFile())) {
