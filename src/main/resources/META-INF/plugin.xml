@@ -1,8 +1,8 @@
 <idea-plugin>
 	<id>com.kaciras.esbench</id>
 	<name>ESBench-IDEA</name>
-	<description>IDEA plugin to help you run ESBench suite quickly</description>
-	<vendor email="kaciras@outlook.com">Kaciras</vendor>
+	<description>Run ESBench suites by clicking on the line marker</description>
+	<vendor url="https://github.com/kaciras/esbench-idea">Kaciras</vendor>
 
 	<depends>com.intellij.modules.platform</depends>
 	<depends>NodeJS</depends>
