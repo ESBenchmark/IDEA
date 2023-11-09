@@ -11,7 +11,7 @@ repositories {
 }
 
 intellij {
-    version.set("2022.2.5")
+    version.set("2023.2.4")
 
     // Target IDE Platform, IU = Intellij Ultimate
     type.set("IU")

@@ -3,6 +3,7 @@ package com.kaciras.esbench;
 import com.intellij.execution.actions.ConfigurationContext;
 import com.intellij.execution.actions.LazyRunConfigurationProducer;
 import com.intellij.execution.configurations.ConfigurationFactory;
+import com.intellij.javascript.testing.JSTestRunnerUtil;
 import com.intellij.lang.javascript.buildTools.npm.PackageJsonUtil;
 import com.intellij.lang.javascript.psi.JSCallExpression;
 import com.intellij.lang.javascript.psi.JSLiteralExpression;
@@ -49,7 +50,7 @@ public final class RunConfigProducer extends LazyRunConfigurationProducer<NodeJs
 		configuration.setName("ESBench " + filename);
 		configuration.setWorkingDirectory(dir);
 		configuration.setMainScriptFilePath(dir + "/node_modules/@esbench/core/bin/cli.js");
-		configuration.setApplicationParameters(getParameter(filename, getBenchName(jsCallExpression)));
+		configuration.setApplicationParameters(getParameter(filename, getNamePattern(jsCallExpression)));
 
 		return true;
 	}
@@ -77,19 +78,22 @@ public final class RunConfigProducer extends LazyRunConfigurationProducer<NodeJs
 		relative = FileUtil.toSystemIndependentName(relative);
 
 		var list = ParametersListUtil.parse(params);
-		var name = getBenchName(location.getPsiElement());
+		var name = getNamePattern(location.getPsiElement());
 
-		return hasParam(list, "--file", relative)
-				&& name == null
-				|| hasParam(list, "--name", name);
+		return hasParam(list, "--file", relative) &&
+				(name == null ? !list.contains("--name") : hasParam(list, "--name", name));
 	}
 
-	private @Nullable String getBenchName(PsiElement element) {
+	private @Nullable String getNamePattern(PsiElement element) {
 		var args = ((JSCallExpression) element.getParent().getParent()).getArguments();
-		if (args.length != 0 && args[0] instanceof JSLiteralExpression literal) {
-			return literal.getStringValue();
+		if (args.length == 0 || !(args[0] instanceof JSLiteralExpression literal)) {
+			return null;
 		}
-		return null;
+		var name = literal.getStringValue();
+		if (name == null) {
+			return null;
+		}
+		return JSTestRunnerUtil.getTestPattern(List.of(name), false);
 	}
 
 	private String getParameter(String file, @Nullable String name) {
