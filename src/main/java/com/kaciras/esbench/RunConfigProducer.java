@@ -8,13 +8,18 @@ import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.psi.PsiElement;
+import com.intellij.util.execution.ParametersListUtil;
 import com.jetbrains.nodejs.run.NodeJsRunConfiguration;
 import com.jetbrains.nodejs.run.NodeJsRunConfigurationType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
-public class RunConfigProducer extends LazyRunConfigurationProducer<NodeJsRunConfiguration> {
+public final class RunConfigProducer extends LazyRunConfigurationProducer<NodeJsRunConfiguration> {
+
 	@NotNull
 	@Override
 	public ConfigurationFactory getConfigurationFactory() {
@@ -42,7 +47,7 @@ public class RunConfigProducer extends LazyRunConfigurationProducer<NodeJsRunCon
 		configuration.setName("ESBench " + filename);
 		configuration.setWorkingDirectory(dir);
 		configuration.setMainScriptFilePath(dir + "/node_modules/@esbench/core/bin/cli.js");
-		configuration.setApplicationParameters("--file \"" + filename + '"');
+		configuration.setApplicationParameters(getParameter(filename, null));
 
 		return true;
 	}
@@ -68,6 +73,24 @@ public class RunConfigProducer extends LazyRunConfigurationProducer<NodeJsRunCon
 		}
 		var relative = Path.of(dir).relativize(Path.of(file.getPath())).toString();
 		relative = FileUtil.toSystemIndependentName(relative);
-		return params.contains("--file \"" + relative + '"');
+
+		var list = ParametersListUtil.parse(params);
+		return hasParam(list, "--file", relative);
+	}
+
+	private String getParameter(String file, @Nullable String name) {
+		var list = new ArrayList<String>(4);
+		list.add("--file");
+		list.add(file);
+		if (name != null) {
+			list.add("--name");
+			list.add(name);
+		}
+		return ParametersListUtil.join(list);
+	}
+
+	private boolean hasParam(List<String> list, String name, String value) {
+		var idx = list.indexOf(name) + 1;
+		return list.size() > idx && list.get(idx).contains(value);
 	}
 }
