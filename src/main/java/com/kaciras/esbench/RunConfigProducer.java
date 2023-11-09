@@ -4,6 +4,8 @@ import com.intellij.execution.actions.ConfigurationContext;
 import com.intellij.execution.actions.LazyRunConfigurationProducer;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.lang.javascript.buildTools.npm.PackageJsonUtil;
+import com.intellij.lang.javascript.psi.JSCallExpression;
+import com.intellij.lang.javascript.psi.JSLiteralExpression;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -47,7 +49,7 @@ public final class RunConfigProducer extends LazyRunConfigurationProducer<NodeJs
 		configuration.setName("ESBench " + filename);
 		configuration.setWorkingDirectory(dir);
 		configuration.setMainScriptFilePath(dir + "/node_modules/@esbench/core/bin/cli.js");
-		configuration.setApplicationParameters(getParameter(filename, null));
+		configuration.setApplicationParameters(getParameter(filename, getBenchName(jsCallExpression)));
 
 		return true;
 	}
@@ -75,7 +77,19 @@ public final class RunConfigProducer extends LazyRunConfigurationProducer<NodeJs
 		relative = FileUtil.toSystemIndependentName(relative);
 
 		var list = ParametersListUtil.parse(params);
-		return hasParam(list, "--file", relative);
+		var name = getBenchName(location.getPsiElement());
+
+		return hasParam(list, "--file", relative)
+				&& name == null
+				|| hasParam(list, "--name", name);
+	}
+
+	private @Nullable String getBenchName(PsiElement element) {
+		var args = ((JSCallExpression) element.getParent().getParent()).getArguments();
+		if (args.length != 0 && args[0] instanceof JSLiteralExpression literal) {
+			return literal.getStringValue();
+		}
+		return null;
 	}
 
 	private String getParameter(String file, @Nullable String name) {
@@ -91,6 +105,6 @@ public final class RunConfigProducer extends LazyRunConfigurationProducer<NodeJs
 
 	private boolean hasParam(List<String> list, String name, String value) {
 		var idx = list.indexOf(name) + 1;
-		return list.size() > idx && list.get(idx).contains(value);
+		return list.size() > idx && list.get(idx).equals(value);
 	}
 }
