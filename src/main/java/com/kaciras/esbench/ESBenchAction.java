@@ -8,7 +8,7 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import org.jetbrains.annotations.NotNull;
 
-public class ESBenchAction extends AnAction {
+public final class ESBenchAction extends AnAction {
 
 	private final String file;
 
@@ -26,11 +26,12 @@ public class ESBenchAction extends AnAction {
 			return;
 		}
 
+		var executor = DefaultRunExecutor.getRunExecutorInstance();
 		var settings = config.getConfigurationSettings();
 		context.getRunManager().setTemporaryConfiguration(settings);
 
 		try {
-			ExecutionEnvironmentBuilder.create(e.getProject(), DefaultRunExecutor.getRunExecutorInstance(), settings.getConfiguration()).buildAndExecute();
+			ExecutionEnvironmentBuilder.create(e.getProject(), executor, config.getConfiguration()).buildAndExecute();
 		} catch (ExecutionException ex) {
 			throw new RuntimeException(ex);
 		}

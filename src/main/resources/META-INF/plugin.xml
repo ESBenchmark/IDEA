@@ -9,6 +9,9 @@
 	<depends>JavaScript</depends>
 
 	<extensions defaultExtensionNs="com.intellij">
+		<configurationType
+				implementation="com.kaciras.esbench.ESBenchConfigType"
+		/>
 		<runLineMarkerContributor
 				language="JavaScript"
 				implementationClass="com.kaciras.esbench.RunLineMarker"

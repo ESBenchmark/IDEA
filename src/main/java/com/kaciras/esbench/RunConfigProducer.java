@@ -3,6 +3,7 @@ package com.kaciras.esbench;
 import com.intellij.execution.actions.ConfigurationContext;
 import com.intellij.execution.actions.LazyRunConfigurationProducer;
 import com.intellij.execution.configurations.ConfigurationFactory;
+import com.intellij.execution.configurations.ConfigurationTypeUtil;
 import com.intellij.javascript.testing.JSTestRunnerUtil;
 import com.intellij.lang.javascript.buildTools.npm.PackageJsonUtil;
 import com.intellij.lang.javascript.psi.JSCallExpression;
@@ -11,27 +12,22 @@ import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.psi.PsiElement;
-import com.intellij.util.execution.ParametersListUtil;
-import com.jetbrains.nodejs.run.NodeJsRunConfiguration;
-import com.jetbrains.nodejs.run.NodeJsRunConfigurationType;
+import org.eclipse.lsp4j.jsonrpc.validation.NonNull;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 
-public final class RunConfigProducer extends LazyRunConfigurationProducer<NodeJsRunConfiguration> {
+public final class RunConfigProducer extends LazyRunConfigurationProducer<ESBenchRunConfig> {
 
 	@NotNull
 	@Override
 	public ConfigurationFactory getConfigurationFactory() {
-		return NodeJsRunConfigurationType.getInstance().getConfigurationFactories()[0];
+		return ConfigurationTypeUtil.findConfigurationType(ESBenchConfigType.class);
 	}
 
 	@Override
 	protected boolean setupConfigurationFromContext(
-			@NotNull NodeJsRunConfiguration configuration,
+			@NotNull ESBenchRunConfig configuration,
 			@NotNull ConfigurationContext context,
 			@NotNull Ref<PsiElement> sourceElement
 	) {
@@ -48,16 +44,17 @@ public final class RunConfigProducer extends LazyRunConfigurationProducer<NodeJs
 		var filename = VfsUtil.getRelativePath(vFile, packageJson.getParent());
 
 		configuration.setName("ESBench " + filename);
-		configuration.setWorkingDirectory(dir);
-		configuration.setMainScriptFilePath(dir + "/node_modules/@esbench/core/bin/cli.js");
-		configuration.setApplicationParameters(getParameter(filename, getNamePattern(jsCallExpression)));
+		configuration.workingDir = dir;
+		configuration.suite = filename;
+		configuration.pattern = getNamePattern(jsCallExpression);
+//		configuration.setMainScriptFilePath(dir + "/node_modules/@esbench/core/bin/cli.js");
 
 		return true;
 	}
 
 	@Override
 	public boolean isConfigurationFromContext(
-			@NotNull NodeJsRunConfiguration configuration,
+			@NotNull ESBenchRunConfig configuration,
 			@NotNull ConfigurationContext context
 	) {
 		var location = context.getLocation();
@@ -68,47 +65,26 @@ public final class RunConfigProducer extends LazyRunConfigurationProducer<NodeJs
 		if (file == null || !file.isInLocalFileSystem()) {
 			return false;
 		}
-		var params = configuration.getApplicationParameters();
-		var dir = configuration.getWorkingDirectory();
+		var dir = configuration.workingDir;
 
-		if (params == null || dir == null) {
-			return false;
-		}
 		var relative = Path.of(dir).relativize(Path.of(file.getPath())).toString();
 		relative = FileUtil.toSystemIndependentName(relative);
 
-		var list = ParametersListUtil.parse(params);
-		var name = getNamePattern(location.getPsiElement());
+		var pattern = getNamePattern(location.getPsiElement());
 
-		return hasParam(list, "--file", relative) &&
-				(name == null ? !list.contains("--name") : hasParam(list, "--name", name));
+		return configuration.suite.equals(relative) &&
+				configuration.pattern.equals(pattern);
 	}
 
-	private @Nullable String getNamePattern(PsiElement element) {
+	private @NonNull String getNamePattern(PsiElement element) {
 		var args = ((JSCallExpression) element.getParent().getParent()).getArguments();
 		if (args.length == 0 || !(args[0] instanceof JSLiteralExpression literal)) {
-			return null;
+			return "";
 		}
 		var name = literal.getStringValue();
 		if (name == null) {
-			return null;
+			return "";
 		}
-		return JSTestRunnerUtil.getTestPattern(List.of(name), false);
-	}
-
-	private String getParameter(String file, @Nullable String name) {
-		var list = new ArrayList<String>(4);
-		list.add("--file");
-		list.add(file);
-		if (name != null) {
-			list.add("--name");
-			list.add(name);
-		}
-		return ParametersListUtil.join(list);
-	}
-
-	private boolean hasParam(List<String> list, String name, String value) {
-		var idx = list.indexOf(name) + 1;
-		return list.size() > idx && list.get(idx).equals(value);
+		return "^" + JSTestRunnerUtil.escapeJavaScriptRegexp(name) + "$";
 	}
 }
