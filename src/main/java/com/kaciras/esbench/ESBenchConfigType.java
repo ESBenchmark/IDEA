@@ -1,6 +1,7 @@
 package com.kaciras.esbench;
 
 import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.execution.configurations.RunConfigurationSingletonPolicy;
 import com.intellij.execution.configurations.SimpleConfigurationType;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.NotNullLazyValue;
@@ -14,6 +15,11 @@ public final class ESBenchConfigType extends SimpleConfigurationType {
 
 	public ESBenchConfigType() {
 		super(ID, "ESBench", null, NotNullLazyValue.createValue(() -> ProfileYellow));
+	}
+
+	@NotNull
+	public RunConfigurationSingletonPolicy getSingletonPolicy() {
+		return RunConfigurationSingletonPolicy.SINGLE_INSTANCE_ONLY;
 	}
 
 	@NotNull
