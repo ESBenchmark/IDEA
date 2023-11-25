@@ -10,12 +10,6 @@ import org.jetbrains.annotations.NotNull;
 
 public final class ESBenchAction extends AnAction {
 
-	private final String file;
-
-	public ESBenchAction(String file) {
-		this.file = file;
-	}
-
 	@Override
 	public void actionPerformed(@NotNull AnActionEvent e) {
 		var context = ConfigurationContext.getFromContext(e.getDataContext(), e.getPlace());

@@ -1,13 +1,14 @@
 package com.kaciras.esbench;
 
-import com.intellij.execution.PsiLocation;
 import com.intellij.execution.lineMarker.RunLineMarkerContributor;
+import com.intellij.lang.ecmascript6.psi.JSExportAssignment;
 import com.intellij.lang.ecmascript6.psi.impl.ES6ImportPsiUtil;
 import com.intellij.lang.javascript.psi.JSCallExpression;
 import com.intellij.lang.javascript.psi.JSReferenceExpression;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,36 +26,42 @@ public final class RunLineMarker extends RunLineMarkerContributor {
 
 	@Override
 	public @Nullable Info getInfo(@NotNull PsiElement element) {
-		if (!check(element)) {
-			return null;
+		if (!(element instanceof LeafPsiElement leaf)) {
+			return null; // Only mark leaf elements for better performance.
+		}
+		if (!isMarkPoint(leaf)) {
+			return null; // Check the element is defineSuite or bench case.
 		}
 		if (!hasImportFromESBench(element.getContainingFile())) {
-			return null;
+			return null; // Check the file has import defineSuite from ESBench.
 		}
-		var location = new PsiLocation(element);
-		var name = location.getVirtualFile().getPath();
-		var action = new ESBenchAction(name);
+		var action = new ESBenchAction();
 		return new Info(Run, new AnAction[]{action}, null);
 	}
 
-	private boolean check(PsiElement element) {
-		if (!(element.getParent() instanceof JSReferenceExpression ref)) {
+	private boolean isMarkPoint(LeafPsiElement leaf) {
+		if (!(leaf.getParent() instanceof JSReferenceExpression ref)) {
 			return false;
 		}
-		if (!(ref.getParent() instanceof JSCallExpression)) {
+		if (!(ref.getParent() instanceof JSCallExpression top)) {
 			return false;
 		}
-		if (ref.textMatches(DEFINE_SUITE)) {
-			return true;
-		}
-		if (element.textMatches(BENCH_1) || element.textMatches(BENCH_2)) {
-			return PsiTreeUtil.findFirstParent(ref, RunLineMarker::isDefineSuite) != null;
-		}
-		return false;
-	}
 
-	static boolean isDefineSuite(@Nullable PsiElement element) {
-		return element instanceof JSCallExpression call && call.getMethodExpression().textMatches(DEFINE_SUITE);
+		// If is bench() or benchAsync(), find the topmost.
+		var name = leaf.getChars();
+		if (name.equals(BENCH_1) || name.equals(BENCH_2)) {
+			top = PsiTreeUtil.getTopmostParentOfType(top, JSCallExpression.class);
+			if (top == null) return false;
+		}
+
+		// Check the top function call is defineSuite(...)
+		var topMethod = top.getMethodExpression();
+		if (topMethod == null || !topMethod.textMatches(DEFINE_SUITE)) {
+			return false;
+		}
+
+		// Make sure the defineSuite(...) is exported.
+		return top.getParent() instanceof JSExportAssignment;
 	}
 
 	/**
@@ -63,7 +70,7 @@ public final class RunLineMarker extends RunLineMarkerContributor {
 	private boolean hasImportFromESBench(PsiFile file) {
 		return ES6ImportPsiUtil.getImportDeclarations(file)
 				.stream()
-				.filter(i -> MODULE.equals(i.getFromClause().getReferenceText()))
+				.filter(i -> MODULE.equals(ES6ImportPsiUtil.getFromClauseText(i)))
 				.flatMap(i -> Arrays.stream(i.getImportSpecifiers()))
 				.anyMatch(s -> s.textMatches(DEFINE_SUITE));
 	}
