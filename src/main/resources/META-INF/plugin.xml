@@ -16,5 +16,8 @@
 				language="JavaScript"
 				implementationClass="com.kaciras.esbench.RunLineMarker"
 		/>
+		<implicitUsageProvider
+				implementation="com.kaciras.esbench.SuiteUsageProvider"
+		/>
 	</extensions>
 </idea-plugin>
