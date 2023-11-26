@@ -3,18 +3,22 @@ package com.kaciras.esbench;
 import com.intellij.execution.DefaultExecutionResult;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.ExecutionResult;
+import com.intellij.execution.filters.UrlFilter;
+import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.process.ProcessTerminatedListener;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.javascript.debugger.CommandLineDebugConfigurator;
-import com.intellij.javascript.nodejs.NodeCommandLineUtil;
 import com.intellij.javascript.nodejs.NodeConsoleAdditionalFilter;
 import com.intellij.javascript.nodejs.NodeStackTraceFilter;
 import com.intellij.javascript.nodejs.execution.NodeBaseRunProfileState;
 import com.intellij.javascript.nodejs.execution.NodeTargetRun;
 import com.intellij.javascript.nodejs.execution.NodeTargetRunOptions;
+import com.intellij.lang.javascript.ConsoleCommandLineFolder;
 import com.intellij.lang.javascript.buildTools.npm.PackageJsonUtil;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.util.PathUtil;
 import com.intellij.util.execution.ParametersListUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -23,17 +27,19 @@ public class ESBenchRunProfileState implements NodeBaseRunProfileState {
 
 	private final ESBenchRunConfig configuration;
 	private final ExecutionEnvironment environment;
+	private final ConsoleCommandLineFolder folder;
 
 	public ESBenchRunProfileState(ESBenchRunConfig configuration, ExecutionEnvironment environment) {
 		this.configuration = configuration;
 		this.environment = environment;
+		this.folder = new ConsoleCommandLineFolder("esbench");
 	}
 
 	@NotNull
 	@Override
 	public ProcessHandler startProcess(@Nullable CommandLineDebugConfigurator configurator) throws ExecutionException {
 		var project = environment.getProject();
-		var options = NodeTargetRunOptions.of(null, this.configuration);
+		var options = NodeTargetRunOptions.of(false, this.configuration);
 		var interpreter = configuration.interpreterRef.resolveNotNull(project);
 
 		try {
@@ -52,11 +58,14 @@ public class ESBenchRunProfileState implements NodeBaseRunProfileState {
 		var project = this.environment.getProject();
 		var workingDir = this.configuration.workingDir;
 
-		var console = NodeCommandLineUtil.createConsole(processHandler, project, true);
+		// Command line folder doesn't work with predefined filters.
+		var console = new ConsoleViewImpl(project, GlobalSearchScope.allScope(project), true, false);
 		console.addMessageFilter(new NodeStackTraceFilter(project, workingDir, NodeTargetRun.getTargetRun(processHandler)));
 		console.addMessageFilter(new NodeConsoleAdditionalFilter(project, workingDir));
+		console.addMessageFilter(new UrlFilter(project));
 		console.attachToProcess(processHandler);
 
+		folder.foldCommandLine(console, processHandler);
 		return new DefaultExecutionResult(console, processHandler);
 	}
 
@@ -74,18 +83,30 @@ public class ESBenchRunProfileState implements NodeBaseRunProfileState {
 		}
 
 		commandLine.addParameter(targetRun.path(cli.toPath()));
-		commandLine.addParameters(ParametersListUtil.parse(configuration.esbenchOptions, false, true, false));
-		commandLine.addParameter("--file");
-		commandLine.addParameter(configuration.suite);
 
-		if (!configuration.pattern.isEmpty()) {
-			commandLine.addParameter("--name");
-			commandLine.addParameter(configuration.pattern);
+		var parsed = ParametersListUtil.parse(configuration.esbenchOptions, false, true, false);
+		commandLine.addParameters(parsed);
+		folder.addPlaceholderTexts(parsed);
+
+		if (!configuration.suite.isEmpty()) {
+			commandLine.addParameter("--file");
+			commandLine.addParameter(configuration.suite);
+			folder.addPlaceholderText("--file");
+			folder.addPlaceholderText(configuration.suite);
 		}
 
 		if (!configuration.configFile.isEmpty()) {
 			commandLine.addParameter("--config");
 			commandLine.addParameter(configuration.configFile);
+			folder.addPlaceholderText("--config");
+			folder.addPlaceholderText(PathUtil.getFileName(configuration.configFile));
+		}
+
+		if (!configuration.pattern.isEmpty()) {
+			commandLine.addParameter("--name");
+			commandLine.addParameter(configuration.pattern);
+			folder.addPlaceholderText("--name");
+			folder.addPlaceholderText(configuration.pattern);
 		}
 
 		var dir = FileUtil.toSystemDependentName(configuration.workingDir);
