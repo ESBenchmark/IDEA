@@ -10,20 +10,11 @@ import static com.kaciras.esbench.ESBenchUtils.DEFINE_CONFIG;
 import static com.kaciras.esbench.ESBenchUtils.DEFINE_SUITE;
 
 /**
- * Avoid unused warning of "export default defineSuite()" in suite files
- * and "export default defineConfig()" in config files.
+ * Avoid unused warning of "export default" at:
+ * - "export default defineConfig()" in config files.
+ * - "export default defineSuite()" in suite files.
  */
 public final class SuiteUsageProvider implements ImplicitUsageProvider {
-
-	@Override
-	public boolean isImplicitWrite(@NotNull PsiElement element) {
-		return false;
-	}
-
-	@Override
-	public boolean isImplicitRead(@NotNull PsiElement element) {
-		return false;
-	}
 
 	@Override
 	public boolean isImplicitUsage(@NotNull PsiElement element) {
@@ -41,5 +32,15 @@ public final class SuiteUsageProvider implements ImplicitUsageProvider {
 		}
 		return name.equals(DEFINE_CONFIG)
 				&& ESBenchUtils.hasImportDefineConfig(file);
+	}
+
+	@Override
+	public boolean isImplicitWrite(@NotNull PsiElement element) {
+		return false;
+	}
+
+	@Override
+	public boolean isImplicitRead(@NotNull PsiElement element) {
+		return false;
 	}
 }

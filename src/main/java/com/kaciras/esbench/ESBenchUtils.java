@@ -19,6 +19,9 @@ public final class ESBenchUtils {
 
 	private ESBenchUtils() {}
 
+	/**
+	 * Get the function name of the call, return empty string if it does not have a name.
+	 */
 	public static String getMethodName(JSCallExpression call) {
 		var func = call.getMethodExpression();
 		if (func == null) {

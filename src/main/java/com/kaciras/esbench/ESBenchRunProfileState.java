@@ -52,7 +52,7 @@ public class ESBenchRunProfileState implements NodeBaseRunProfileState {
 		var project = this.environment.getProject();
 		var workingDir = this.configuration.workingDir;
 
-		var console = NodeCommandLineUtil.createConsole(processHandler, project, false);
+		var console = NodeCommandLineUtil.createConsole(processHandler, project, true);
 		console.addMessageFilter(new NodeStackTraceFilter(project, workingDir, NodeTargetRun.getTargetRun(processHandler)));
 		console.addMessageFilter(new NodeConsoleAdditionalFilter(project, workingDir));
 		console.attachToProcess(processHandler);
@@ -60,7 +60,7 @@ public class ESBenchRunProfileState implements NodeBaseRunProfileState {
 		return new DefaultExecutionResult(console, processHandler);
 	}
 
-	private void configureCommandLine(NodeTargetRun targetRun) {
+	private void configureCommandLine(NodeTargetRun targetRun) throws ExecutionException {
 		targetRun.setEnvData(configuration.envData);
 		targetRun.addNodeOptionsWithExpandedMacros(false, configuration.nodeOptions);
 
@@ -68,9 +68,12 @@ public class ESBenchRunProfileState implements NodeBaseRunProfileState {
 
 		var pkg = configuration.resolvePackage();
 		var binFile = PackageJsonUtil.guessDefaultBinaryNameOfDependency(pkg);
-		var cli = pkg.findBinFile(binFile, null).toPath();
-		commandLine.addParameter(targetRun.path(cli));
+		var cli = pkg.findBinFile(binFile, null);
+		if (cli == null) {
+			throw new ExecutionException("Can't find ESBench bin file.");
+		}
 
+		commandLine.addParameter(targetRun.path(cli.toPath()));
 		commandLine.addParameters(ParametersListUtil.parse(configuration.esbenchOptions, false, true, false));
 		commandLine.addParameter("--file");
 		commandLine.addParameter(configuration.suite);

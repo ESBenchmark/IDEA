@@ -36,7 +36,7 @@ public class ConfigurationEditor extends SettingsEditor<ESBenchRunConfig> {
 		this.nodeOptions = new RawCommandLineEditor();
 		this.workDir = new TextFieldWithBrowseButton();
 		this.configFile = new TextFieldWithHistoryWithBrowseButton();
-		this.packagePath = new NodePackageField(this.interpreter, ESBenchRunConfig.PKG_DESCRIPTOR, this::contextDir);
+		this.packagePath = new NodePackageField(this.interpreter, ESBenchRunConfig.PKG_DESCRIPTOR, this::workDirEntry);
 		this.envVars = new EnvironmentVariablesTextFieldWithBrowseButton();
 		this.options = new RawCommandLineEditor();
 		this.suite = new TextFieldWithBrowseButton();
@@ -56,7 +56,7 @@ public class ConfigurationEditor extends SettingsEditor<ESBenchRunConfig> {
 				.addLabeledComponent("Benchmark name:", this.pattern).getPanel();
 	}
 
-	private VirtualFile contextDir() {
+	private VirtualFile workDirEntry() {
 		return LocalFileSystem.getInstance().findFileByPath(workDir.getText());
 	}
 
