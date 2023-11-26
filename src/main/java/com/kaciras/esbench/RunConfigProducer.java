@@ -42,10 +42,10 @@ public final class RunConfigProducer extends LazyRunConfigurationProducer<ESBenc
 		var dir = guessWorkingDir(vFile);
 		var filename = VfsUtil.getRelativePath(vFile, dir);
 
-		config.setName("ESBench " + filename);
 		config.workingDir = dir.getPath();
 		config.suite = filename;
 		config.pattern = getNamePattern(leaf);
+		config.setGeneratedName();
 
 		return true;
 	}

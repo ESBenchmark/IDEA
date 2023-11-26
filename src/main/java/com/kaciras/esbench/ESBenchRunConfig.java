@@ -71,6 +71,12 @@ public class ESBenchRunConfig extends AbstractNodeTargetRunProfile implements No
 		return PKG_DESCRIPTOR.findFirstDirectDependencyPackage(getProject(), null, null);
 	}
 
+	@Nullable
+	@Override
+	public String suggestedName() {
+		return pattern.isEmpty() ? suite : pattern;
+	}
+
 	@Override
 	public void checkConfiguration() throws RuntimeConfigurationException {
 		NodeInterpreterUtil.checkForRunConfiguration(interpreterRef.resolve(getProject()));
