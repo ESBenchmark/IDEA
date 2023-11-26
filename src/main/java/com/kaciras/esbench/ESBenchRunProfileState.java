@@ -8,9 +8,12 @@ import com.intellij.execution.process.ProcessTerminatedListener;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.javascript.debugger.CommandLineDebugConfigurator;
 import com.intellij.javascript.nodejs.NodeCommandLineUtil;
+import com.intellij.javascript.nodejs.NodeConsoleAdditionalFilter;
+import com.intellij.javascript.nodejs.NodeStackTraceFilter;
 import com.intellij.javascript.nodejs.execution.NodeBaseRunProfileState;
 import com.intellij.javascript.nodejs.execution.NodeTargetRun;
 import com.intellij.javascript.nodejs.execution.NodeTargetRunOptions;
+import com.intellij.lang.javascript.buildTools.npm.PackageJsonUtil;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.execution.ParametersListUtil;
 import org.jetbrains.annotations.NotNull;
@@ -46,8 +49,14 @@ public class ESBenchRunProfileState implements NodeBaseRunProfileState {
 	@Override
 	public ExecutionResult createExecutionResult(@NotNull ProcessHandler processHandler) {
 		ProcessTerminatedListener.attach(processHandler);
-		var console = NodeCommandLineUtil.createConsole(processHandler, this.environment.getProject(), true);
+		var project = this.environment.getProject();
+		var workingDir = this.configuration.workingDir;
+
+		var console = NodeCommandLineUtil.createConsole(processHandler, project, false);
+		console.addMessageFilter(new NodeStackTraceFilter(project, workingDir, NodeTargetRun.getTargetRun(processHandler)));
+		console.addMessageFilter(new NodeConsoleAdditionalFilter(project, workingDir));
 		console.attachToProcess(processHandler);
+
 		return new DefaultExecutionResult(console, processHandler);
 	}
 
@@ -56,14 +65,25 @@ public class ESBenchRunProfileState implements NodeBaseRunProfileState {
 		targetRun.addNodeOptionsWithExpandedMacros(false, configuration.nodeOptions);
 
 		var commandLine = targetRun.getCommandLineBuilder();
-		commandLine.addParameter("/node_modules/@esbench/core/bin/cli.js");
+
+		var pkg = configuration.resolvePackage();
+		var binFile = PackageJsonUtil.guessDefaultBinaryNameOfDependency(pkg);
+		var cli = pkg.findBinFile(binFile, null).toPath();
+		commandLine.addParameter(targetRun.path(cli));
+
 		commandLine.addParameters(ParametersListUtil.parse(configuration.esbenchOptions, false, true, false));
-		commandLine.addParameter("--config");
-		commandLine.addParameter(configuration.configFilePath);
 		commandLine.addParameter("--file");
 		commandLine.addParameter(configuration.suite);
-		commandLine.addParameter("--name");
-		commandLine.addParameter(configuration.pattern);
+
+		if (!configuration.pattern.isEmpty()) {
+			commandLine.addParameter("--name");
+			commandLine.addParameter(configuration.pattern);
+		}
+
+		if (!configuration.configFile.isEmpty()) {
+			commandLine.addParameter("--config");
+			commandLine.addParameter(configuration.configFile);
+		}
 
 		var dir = FileUtil.toSystemDependentName(configuration.workingDir);
 		commandLine.setWorkingDirectory(targetRun.path(dir));

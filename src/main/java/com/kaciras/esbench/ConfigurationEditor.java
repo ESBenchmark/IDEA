@@ -7,6 +7,8 @@ import com.intellij.lang.javascript.JavaScriptBundle;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.RawCommandLineEditor;
 import com.intellij.ui.TextFieldWithHistoryWithBrowseButton;
 import com.intellij.ui.components.fields.ExtendableTextField;
@@ -34,7 +36,7 @@ public class ConfigurationEditor extends SettingsEditor<ESBenchRunConfig> {
 		this.nodeOptions = new RawCommandLineEditor();
 		this.workDir = new TextFieldWithBrowseButton();
 		this.configFile = new TextFieldWithHistoryWithBrowseButton();
-		this.packagePath = new NodePackageField(this.interpreter, "@esbench/core");
+		this.packagePath = new NodePackageField(this.interpreter, ESBenchRunConfig.PKG_DESCRIPTOR, this::contextDir);
 		this.envVars = new EnvironmentVariablesTextFieldWithBrowseButton();
 		this.options = new RawCommandLineEditor();
 		this.suite = new TextFieldWithBrowseButton();
@@ -54,6 +56,10 @@ public class ConfigurationEditor extends SettingsEditor<ESBenchRunConfig> {
 				.addLabeledComponent("Benchmark name:", this.pattern).getPanel();
 	}
 
+	private VirtualFile contextDir() {
+		return LocalFileSystem.getInstance().findFileByPath(workDir.getText());
+	}
+
 	@Override
 	protected @NotNull JComponent createEditor() {
 		return this.panel;
@@ -63,9 +69,11 @@ public class ConfigurationEditor extends SettingsEditor<ESBenchRunConfig> {
 	protected void resetEditorFrom(@NotNull ESBenchRunConfig config) {
 		nodeOptions.setText(config.nodeOptions);
 		options.setText(config.esbenchOptions);
-		packagePath.setSelected(config.esbenchPackage);
+		if (config.esbenchPackage == null) {
+			packagePath.setSelected(config.resolvePackage());
+		}
 		envVars.setData(config.envData);
-		configFile.setText(config.configFilePath);
+		configFile.setText(config.configFile);
 		suite.setText(config.suite);
 		pattern.setText(config.pattern);
 		workDir.setText(config.workingDir);
@@ -79,7 +87,7 @@ public class ConfigurationEditor extends SettingsEditor<ESBenchRunConfig> {
 		config.esbenchOptions = options.getText();
 		config.esbenchPackage = packagePath.getSelected();
 		config.envData = envVars.getData();
-		config.configFilePath = configFile.getText();
+		config.configFile = configFile.getText();
 		config.suite = suite.getText();
 		config.pattern = pattern.getText();
 		config.workingDir = PathShortener.getAbsolutePath(workDir.getTextField());

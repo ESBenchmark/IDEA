@@ -6,6 +6,7 @@ import com.intellij.execution.configuration.EnvironmentVariablesData;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.runners.ExecutionEnvironment;
+import com.intellij.javascript.nodejs.debug.NodeDebugRunConfiguration;
 import com.intellij.javascript.nodejs.execution.AbstractNodeTargetRunProfile;
 import com.intellij.javascript.nodejs.interpreter.NodeJsInterpreter;
 import com.intellij.javascript.nodejs.interpreter.NodeJsInterpreterRef;
@@ -19,7 +20,7 @@ import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ESBenchRunConfig extends AbstractNodeTargetRunProfile {
+public class ESBenchRunConfig extends AbstractNodeTargetRunProfile implements NodeDebugRunConfiguration {
 
 	public static final NodePackageDescriptor PKG_DESCRIPTOR = new NodePackageDescriptor("@esbench/core");
 
@@ -30,14 +31,13 @@ public class ESBenchRunConfig extends AbstractNodeTargetRunProfile {
 	@Nullable
 	public NodePackage esbenchPackage;
 	@NotNull
-	public String configFilePath = "";
+	public String configFile = "";
 	@NotNull
 	public String workingDir = "";
 	@NotNull
 	public String esbenchOptions = "";
 	@NotNull
 	public EnvironmentVariablesData envData = EnvironmentVariablesData.DEFAULT;
-
 	@NotNull
 	public String suite = "";
 	@NotNull
@@ -59,14 +59,21 @@ public class ESBenchRunConfig extends AbstractNodeTargetRunProfile {
 		return new ConfigurationEditor(this.getProject());
 	}
 
+	public NodePackage resolvePackage() {
+		if (esbenchPackage != null) {
+			return esbenchPackage;
+		}
+		return PKG_DESCRIPTOR.findFirstDirectDependencyPackage(getProject(), null, null);
+	}
+
 	@Override
 	public void readConfiguration(@NotNull Element element) throws InvalidDataException {
 		workingDir = readXml(element, "working-dir");
-		configFilePath = readXml(element, "config");
+		configFile = readXml(element, "config");
 		nodeOptions = readXml(element, "node-options");
 		suite = readXml(element, "suite");
 		pattern = readXml(element, "pattern");
-		esbenchOptions = readXml(element, "esbench-options");
+		esbenchOptions = readXml(element, "options");
 
 		envData = EnvironmentVariablesData.readExternal(element);
 
@@ -82,11 +89,11 @@ public class ESBenchRunConfig extends AbstractNodeTargetRunProfile {
 	@Override
 	public void writeConfiguration(@NotNull Element element) {
 		writeXml(element, "working-dir", workingDir);
-		writeXml(element, "config", configFilePath);
+		writeXml(element, "config", configFile);
 		writeXml(element, "node-options", nodeOptions);
 		writeXml(element, "suite", suite);
 		writeXml(element, "pattern", pattern);
-		writeXml(element, "esbench-options", esbenchOptions);
+		writeXml(element, "options", esbenchOptions);
 
 		envData.writeExternal(element);
 

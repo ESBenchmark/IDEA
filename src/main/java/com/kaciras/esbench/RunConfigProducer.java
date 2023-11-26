@@ -9,14 +9,12 @@ import com.intellij.lang.javascript.buildTools.npm.PackageJsonUtil;
 import com.intellij.lang.javascript.psi.JSCallExpression;
 import com.intellij.lang.javascript.psi.JSLiteralExpression;
 import com.intellij.openapi.util.Ref;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import org.eclipse.lsp4j.jsonrpc.validation.NonNull;
 import org.jetbrains.annotations.NotNull;
-
-import java.nio.file.Path;
 
 public final class RunConfigProducer extends LazyRunConfigurationProducer<ESBenchRunConfig> {
 
@@ -32,7 +30,7 @@ public final class RunConfigProducer extends LazyRunConfigurationProducer<ESBenc
 			@NotNull ConfigurationContext context,
 			@NotNull Ref<PsiElement> sourceElement
 	) {
-		var leaf = (LeafPsiElement) sourceElement.get();
+		var leaf = sourceElement.get();
 
 		var psiFile = leaf.getContainingFile();
 		var vFile = psiFile.getVirtualFile();
@@ -41,12 +39,11 @@ public final class RunConfigProducer extends LazyRunConfigurationProducer<ESBenc
 			return false;
 		}
 
-		var packageJson = PackageJsonUtil.findUpPackageJson(vFile);
-		var dir = packageJson.getParent().getPath();
-		var filename = VfsUtil.getRelativePath(vFile, packageJson.getParent());
+		var dir = guessWorkingDir(vFile);
+		var filename = VfsUtil.getRelativePath(vFile, dir);
 
 		config.setName("ESBench " + filename);
-		config.workingDir = dir;
+		config.workingDir = dir.getPath();
 		config.suite = filename;
 		config.pattern = getNamePattern(leaf);
 
@@ -58,6 +55,9 @@ public final class RunConfigProducer extends LazyRunConfigurationProducer<ESBenc
 			@NotNull ESBenchRunConfig config,
 			@NotNull ConfigurationContext context
 	) {
+		var template = (ESBenchRunConfig) this.cloneTemplateConfiguration(context)
+				.getConfiguration();
+
 		var location = context.getLocation();
 		if (location == null) {
 			return false;
@@ -66,19 +66,24 @@ public final class RunConfigProducer extends LazyRunConfigurationProducer<ESBenc
 		if (file == null || !file.isInLocalFileSystem()) {
 			return false;
 		}
-		var dir = config.workingDir;
 
-		var relative = Path.of(dir).relativize(Path.of(file.getPath())).toString();
-		relative = FileUtil.toSystemIndependentName(relative);
+		var workingDir = guessWorkingDir(file);
+		var filename = VfsUtil.getRelativePath(file, workingDir);
 
-		var pattern = getNamePattern((LeafPsiElement) location.getPsiElement());
+		var pattern = getNamePattern(location.getPsiElement());
 
-		return config.suite.equals(relative) &&
-				config.pattern.equals(pattern);
+		return config.configFile.equals(template.workingDir)
+				&& config.workingDir.equals(workingDir.getPath())
+				&& config.suite.equals(filename)
+				&& config.pattern.equals(pattern);
 	}
 
-	private @NonNull String getNamePattern(LeafPsiElement element) {
-		if (element.getChars().charAt(0) == 'd' /* defineSuite */) {
+	private VirtualFile guessWorkingDir(VirtualFile suiteFile) {
+		return PackageJsonUtil.findUpPackageJson(suiteFile).getParent();
+	}
+
+	private @NonNull String getNamePattern(PsiElement element) {
+		if (((LeafPsiElement) element).getChars().charAt(0) == 'd' /* defineSuite */) {
 			return "";
 		}
 		var args = ((JSCallExpression) element.getParent().getParent()).getArguments();
