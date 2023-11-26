@@ -5,13 +5,16 @@ import com.intellij.execution.Executor;
 import com.intellij.execution.configuration.EnvironmentVariablesData;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.RunProfileState;
+import com.intellij.execution.configurations.RuntimeConfigurationException;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.javascript.nodejs.debug.NodeDebugRunConfiguration;
 import com.intellij.javascript.nodejs.execution.AbstractNodeTargetRunProfile;
+import com.intellij.javascript.nodejs.interpreter.NodeInterpreterUtil;
 import com.intellij.javascript.nodejs.interpreter.NodeJsInterpreter;
 import com.intellij.javascript.nodejs.interpreter.NodeJsInterpreterRef;
 import com.intellij.javascript.nodejs.util.NodePackage;
 import com.intellij.javascript.nodejs.util.NodePackageDescriptor;
+import com.intellij.javascript.testing.JsTestConfigurationUtil;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.InvalidDataException;
@@ -19,6 +22,8 @@ import com.intellij.openapi.util.JDOMExternalizerUtil;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.nio.file.Path;
 
 public class ESBenchRunConfig extends AbstractNodeTargetRunProfile implements NodeDebugRunConfiguration {
 
@@ -64,6 +69,19 @@ public class ESBenchRunConfig extends AbstractNodeTargetRunProfile implements No
 			return esbenchPackage;
 		}
 		return PKG_DESCRIPTOR.findFirstDirectDependencyPackage(getProject(), null, null);
+	}
+
+	@Override
+	public void checkConfiguration() throws RuntimeConfigurationException {
+		NodeInterpreterUtil.checkForRunConfiguration(interpreterRef.resolve(getProject()));
+		resolvePackage().validateForRunConfiguration("@esbench/core");
+		JsTestConfigurationUtil.INSTANCE.validatePath(true, "working directory", workingDir);
+		if (!suite.isEmpty()) {
+			JsTestConfigurationUtil.INSTANCE.validatePath(false, "suite file", Path.of(workingDir, suite).toString());
+		}
+		if (!configFile.isEmpty()) {
+			JsTestConfigurationUtil.INSTANCE.validatePath(false, "configuration file", configFile);
+		}
 	}
 
 	@Override
