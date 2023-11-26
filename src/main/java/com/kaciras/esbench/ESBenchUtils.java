@@ -19,7 +19,7 @@ public final class ESBenchUtils {
 
 	private ESBenchUtils() {}
 
-	public static CharSequence getFuncName(JSCallExpression call) {
+	public static String getMethodName(JSCallExpression call) {
 		var func = call.getMethodExpression();
 		if (func == null) {
 			return "";
@@ -28,7 +28,7 @@ public final class ESBenchUtils {
 			return "";
 		}
 		var name = ref.getReferenceNameElement();
-		return name instanceof LeafPsiElement leaf ? leaf.getChars() : "";
+		return name instanceof LeafPsiElement leaf ? leaf.getText() : "";
 	}
 
 	/**

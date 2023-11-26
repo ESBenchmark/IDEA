@@ -11,7 +11,7 @@ import static com.intellij.icons.AllIcons.Actions.ProfileYellow;
 
 public final class ESBenchConfigType extends SimpleConfigurationType {
 
-	static final String ID = "ESBenchConfiguration";
+	public static final String ID = "ESBenchConfiguration";
 
 	public ESBenchConfigType() {
 		super(ID, "ESBench", null, NotNullLazyValue.createValue(() -> ProfileYellow));

@@ -38,7 +38,7 @@ public class ConfigurationEditor extends SettingsEditor<ESBenchRunConfig> {
 		this.envVars = new EnvironmentVariablesTextFieldWithBrowseButton();
 		this.options = new RawCommandLineEditor();
 		this.suite = new TextFieldWithBrowseButton();
-		this.pattern = new ExtendableTextField();
+		this.pattern = new ExtendableTextField(0);
 
 		this.panel = new FormBuilder().setAlignLabelOnRight(false)
 				.addLabeledComponent("&Configuration file:", this.configFile)

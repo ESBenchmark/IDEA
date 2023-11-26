@@ -48,7 +48,7 @@ public final class RunLineMarker extends RunLineMarkerContributor {
 		}
 
 		// Check the topmost statement is export default defineSuite()
-		return DEFINE_SUITE.contentEquals(ESBenchUtils.getFuncName(top))
+		return ESBenchUtils.getMethodName(top).equals(DEFINE_SUITE)
 				&& top.getParent() instanceof JSExportAssignment;
 	}
 }

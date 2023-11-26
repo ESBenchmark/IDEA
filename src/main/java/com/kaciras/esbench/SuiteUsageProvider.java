@@ -33,15 +33,13 @@ public final class SuiteUsageProvider implements ImplicitUsageProvider {
 		if (!(export.getExpression() instanceof JSCallExpression call)) {
 			return false;
 		}
-		var name = ESBenchUtils.getFuncName(call);
+		var name = ESBenchUtils.getMethodName(call);
 		var file = element.getContainingFile();
 
-		if (DEFINE_SUITE.contentEquals(name)) {
+		if (name.equals(DEFINE_SUITE)) {
 			return ESBenchUtils.hasImportDefineSuite(file);
 		}
-		if (!DEFINE_CONFIG.contentEquals(name)) {
-			return false;
-		}
-		return ESBenchUtils.hasImportDefineConfig(file);
+		return name.equals(DEFINE_CONFIG)
+				&& ESBenchUtils.hasImportDefineConfig(file);
 	}
 }
