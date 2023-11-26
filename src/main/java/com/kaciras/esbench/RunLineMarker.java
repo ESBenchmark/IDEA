@@ -28,7 +28,7 @@ public final class RunLineMarker extends RunLineMarkerContributor {
 			return null; // The file must have import defineSuite from ESBench.
 		}
 		var action = new ESBenchAction();
-		return new Info(Run, new AnAction[]{action}, null);
+		return new Info(Run, new AnAction[]{action}, x -> "Run Benchmark");
 	}
 
 	private boolean isMarkPoint(LeafPsiElement leaf) {
