@@ -4,6 +4,7 @@ import com.intellij.execution.configuration.EnvironmentVariablesTextFieldWithBro
 import com.intellij.javascript.nodejs.interpreter.NodeJsInterpreterField;
 import com.intellij.javascript.nodejs.util.NodePackageField;
 import com.intellij.lang.javascript.JavaScriptBundle;
+import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
@@ -13,6 +14,7 @@ import com.intellij.ui.RawCommandLineEditor;
 import com.intellij.ui.TextFieldWithHistoryWithBrowseButton;
 import com.intellij.ui.components.fields.ExtendableTextField;
 import com.intellij.util.ui.FormBuilder;
+import com.intellij.util.ui.SwingHelper;
 import com.intellij.webcore.ui.PathShortener;
 import org.jetbrains.annotations.NotNull;
 
@@ -41,6 +43,10 @@ public class ConfigurationEditor extends SettingsEditor<ESBenchRunConfig> {
 		this.options = new RawCommandLineEditor();
 		this.suite = new TextFieldWithBrowseButton();
 		this.pattern = new ExtendableTextField(0);
+
+		SwingHelper.installFileCompletionAndBrowseDialog(project, configFile, "Select ESBench Configuration File", FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor());
+		SwingHelper.installFileCompletionAndBrowseDialog(project, workDir, JavaScriptBundle.message("rc.workingDirectory.browseDialogTitle"), FileChooserDescriptorFactory.createSingleFolderDescriptor());
+		SwingHelper.installFileCompletionAndBrowseDialog(project, suite, "Select Benchmark Suite", FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor());
 
 		this.panel = new FormBuilder().setAlignLabelOnRight(false)
 				.addLabeledComponent("&Configuration file:", this.configFile)
