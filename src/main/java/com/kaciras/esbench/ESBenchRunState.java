@@ -22,6 +22,8 @@ import com.intellij.util.execution.ParametersListUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.nio.file.Path;
+
 public class ESBenchRunState implements NodeBaseRunProfileState {
 
 	private final ESBenchRunConfig configuration;
@@ -55,32 +57,24 @@ public class ESBenchRunState implements NodeBaseRunProfileState {
 		targetRun.addNodeOptionsWithExpandedMacros(false, configuration.nodeOptions);
 
 		var commandLine = targetRun.getCommandLineBuilder();
-
-		var pkg = configuration.resolvePackage();
-		var binFile = PackageJsonUtil.guessDefaultBinaryNameOfDependency(pkg);
-		var cli = pkg.findBinFile(binFile, null);
-		if (cli == null) {
-			throw new ExecutionException("Can't find ESBench bin file.");
-		}
-
-		commandLine.addParameter(targetRun.path(cli.toPath()));
+		commandLine.addParameter(targetRun.path(findBinFile()));
 
 		var parsed = ParametersListUtil.parse(configuration.esbenchOptions, false, true, false);
 		commandLine.addParameters(parsed);
 		folder.addPlaceholderTexts(parsed);
-
-		if (!configuration.suite.isEmpty()) {
-			commandLine.addParameter("--file");
-			commandLine.addParameter(targetRun.path(configuration.suite));
-			folder.addPlaceholderText("--file");
-			folder.addPlaceholderText(PathUtil.getFileName(configuration.suite));
-		}
 
 		if (!configuration.configFile.isEmpty()) {
 			commandLine.addParameter("--config");
 			commandLine.addParameter(targetRun.path(configuration.configFile));
 			folder.addPlaceholderText("--config");
 			folder.addPlaceholderText(PathUtil.getFileName(configuration.configFile));
+		}
+
+		if (!configuration.suite.isEmpty()) {
+			commandLine.addParameter("--file");
+			commandLine.addParameter(targetRun.path(configuration.suite));
+			folder.addPlaceholderText("--file");
+			folder.addPlaceholderText(PathUtil.getFileName(configuration.suite));
 		}
 
 		if (!configuration.pattern.isEmpty()) {
@@ -91,6 +85,16 @@ public class ESBenchRunState implements NodeBaseRunProfileState {
 		}
 
 		commandLine.setWorkingDirectory(targetRun.path(configuration.workingDir));
+	}
+
+	private Path findBinFile() throws ExecutionException {
+		var pkg = configuration.resolvePackage();
+		var binFile = PackageJsonUtil.guessDefaultBinaryNameOfDependency(pkg);
+		var cli = pkg.findBinFile(binFile, null);
+		if (cli != null) {
+			return cli.toPath();
+		}
+		throw new ExecutionException("Can't find ESBench bin file.");
 	}
 
 	@NotNull
