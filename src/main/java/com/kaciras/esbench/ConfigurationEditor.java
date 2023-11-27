@@ -8,6 +8,7 @@ import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.RawCommandLineEditor;
@@ -15,12 +16,11 @@ import com.intellij.ui.TextFieldWithHistoryWithBrowseButton;
 import com.intellij.ui.components.fields.ExtendableTextField;
 import com.intellij.util.ui.FormBuilder;
 import com.intellij.util.ui.SwingHelper;
-import com.intellij.webcore.ui.PathShortener;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-public class ConfigurationEditor extends SettingsEditor<ESBenchRunConfig> {
+public final class ConfigurationEditor extends SettingsEditor<ESBenchRunConfig> {
 
 	private final NodeJsInterpreterField interpreter;
 	private final RawCommandLineEditor nodeOptions;
@@ -73,17 +73,17 @@ public class ConfigurationEditor extends SettingsEditor<ESBenchRunConfig> {
 
 	@Override
 	protected void resetEditorFrom(@NotNull ESBenchRunConfig config) {
+		interpreter.setInterpreterRef(config.interpreterRef);
 		nodeOptions.setText(config.nodeOptions);
 		options.setText(config.esbenchOptions);
 		if (config.esbenchPackage == null) {
 			packagePath.setSelected(config.resolvePackage());
 		}
 		envVars.setData(config.envData);
-		configFile.setText(config.configFile);
-		suite.setText(config.suite);
 		pattern.setText(config.pattern);
-		workDir.setText(config.workingDir);
-		interpreter.setInterpreterRef(config.interpreterRef);
+		configFile.setText(FileUtil.toSystemDependentName(config.configFile));
+		suite.setText(FileUtil.toSystemDependentName(config.suite));
+		workDir.setText(FileUtil.toSystemDependentName(config.workingDir));
 	}
 
 	@Override
@@ -93,9 +93,9 @@ public class ConfigurationEditor extends SettingsEditor<ESBenchRunConfig> {
 		config.esbenchOptions = options.getText();
 		config.esbenchPackage = packagePath.getSelected();
 		config.envData = envVars.getData();
-		config.configFile = configFile.getText();
-		config.suite = suite.getText();
 		config.pattern = pattern.getText();
-		config.workingDir = PathShortener.getAbsolutePath(workDir.getTextField());
+		config.configFile = FileUtil.toSystemIndependentName(configFile.getText());
+		config.suite = FileUtil.toSystemIndependentName(suite.getText());
+		config.workingDir = FileUtil.toSystemIndependentName(workDir.getText());
 	}
 }

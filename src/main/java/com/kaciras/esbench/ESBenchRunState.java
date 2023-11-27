@@ -16,7 +16,6 @@ import com.intellij.javascript.nodejs.execution.NodeTargetRun;
 import com.intellij.javascript.nodejs.execution.NodeTargetRunOptions;
 import com.intellij.lang.javascript.ConsoleCommandLineFolder;
 import com.intellij.lang.javascript.buildTools.npm.PackageJsonUtil;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.util.PathUtil;
 import com.intellij.util.execution.ParametersListUtil;
@@ -91,8 +90,7 @@ public class ESBenchRunState implements NodeBaseRunProfileState {
 			folder.addPlaceholderText(configuration.pattern);
 		}
 
-		var dir = FileUtil.toSystemDependentName(configuration.workingDir);
-		commandLine.setWorkingDirectory(targetRun.path(dir));
+		commandLine.setWorkingDirectory(targetRun.path(configuration.workingDir));
 	}
 
 	@NotNull
