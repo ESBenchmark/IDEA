@@ -23,13 +23,13 @@ import com.intellij.util.execution.ParametersListUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ESBenchRunProfileState implements NodeBaseRunProfileState {
+public class ESBenchRunState implements NodeBaseRunProfileState {
 
 	private final ESBenchRunConfig configuration;
 	private final ExecutionEnvironment environment;
 	private final ConsoleCommandLineFolder folder;
 
-	public ESBenchRunProfileState(ESBenchRunConfig configuration, ExecutionEnvironment environment) {
+	public ESBenchRunState(ESBenchRunConfig configuration, ExecutionEnvironment environment) {
 		this.configuration = configuration;
 		this.environment = environment;
 		this.folder = new ConsoleCommandLineFolder("esbench");
@@ -49,24 +49,6 @@ public class ESBenchRunProfileState implements NodeBaseRunProfileState {
 		} catch (UnsupportedOperationException e) {
 			throw new ExecutionException(e.getLocalizedMessage());
 		}
-	}
-
-	@NotNull
-	@Override
-	public ExecutionResult createExecutionResult(@NotNull ProcessHandler processHandler) {
-		ProcessTerminatedListener.attach(processHandler);
-		var project = this.environment.getProject();
-		var workingDir = this.configuration.workingDir;
-
-		// Command line folder doesn't work with predefined filters.
-		var console = new ConsoleViewImpl(project, GlobalSearchScope.allScope(project), true, false);
-		console.addMessageFilter(new NodeStackTraceFilter(project, workingDir, NodeTargetRun.getTargetRun(processHandler)));
-		console.addMessageFilter(new NodeConsoleAdditionalFilter(project, workingDir));
-		console.addMessageFilter(new UrlFilter(project));
-		console.attachToProcess(processHandler);
-
-		folder.foldCommandLine(console, processHandler);
-		return new DefaultExecutionResult(console, processHandler);
 	}
 
 	private void configureCommandLine(NodeTargetRun targetRun) throws ExecutionException {
@@ -90,14 +72,14 @@ public class ESBenchRunProfileState implements NodeBaseRunProfileState {
 
 		if (!configuration.suite.isEmpty()) {
 			commandLine.addParameter("--file");
-			commandLine.addParameter(configuration.suite);
+			commandLine.addParameter(targetRun.path(configuration.suite));
 			folder.addPlaceholderText("--file");
-			folder.addPlaceholderText(configuration.suite);
+			folder.addPlaceholderText(PathUtil.getFileName(configuration.suite));
 		}
 
 		if (!configuration.configFile.isEmpty()) {
 			commandLine.addParameter("--config");
-			commandLine.addParameter(configuration.configFile);
+			commandLine.addParameter(targetRun.path(configuration.configFile));
 			folder.addPlaceholderText("--config");
 			folder.addPlaceholderText(PathUtil.getFileName(configuration.configFile));
 		}
@@ -111,5 +93,23 @@ public class ESBenchRunProfileState implements NodeBaseRunProfileState {
 
 		var dir = FileUtil.toSystemDependentName(configuration.workingDir);
 		commandLine.setWorkingDirectory(targetRun.path(dir));
+	}
+
+	@NotNull
+	@Override
+	public ExecutionResult createExecutionResult(@NotNull ProcessHandler processHandler) {
+		ProcessTerminatedListener.attach(processHandler);
+		var project = this.environment.getProject();
+		var workingDir = this.configuration.workingDir;
+
+		// Command line folder doesn't work with predefined filters.
+		var console = new ConsoleViewImpl(project, GlobalSearchScope.allScope(project), true, false);
+		console.addMessageFilter(new NodeStackTraceFilter(project, workingDir, NodeTargetRun.getTargetRun(processHandler)));
+		console.addMessageFilter(new NodeConsoleAdditionalFilter(project, workingDir));
+		console.addMessageFilter(new UrlFilter(project));
+		console.attachToProcess(processHandler);
+
+		folder.foldCommandLine(console, processHandler);
+		return new DefaultExecutionResult(console, processHandler);
 	}
 }

@@ -19,11 +19,10 @@ import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.JDOMExternalizerUtil;
+import com.intellij.util.PathUtil;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.nio.file.Path;
 
 public class ESBenchRunConfig extends AbstractNodeTargetRunProfile implements NodeDebugRunConfiguration {
 
@@ -74,7 +73,7 @@ public class ESBenchRunConfig extends AbstractNodeTargetRunProfile implements No
 	@Nullable
 	@Override
 	public String suggestedName() {
-		return pattern.isEmpty() ? suite : pattern;
+		return pattern.isEmpty() ? PathUtil.getFileName(suite) : pattern;
 	}
 
 	@Override
@@ -83,7 +82,7 @@ public class ESBenchRunConfig extends AbstractNodeTargetRunProfile implements No
 		resolvePackage().validateForRunConfiguration("@esbench/core");
 		JsTestConfigurationUtil.INSTANCE.validatePath(true, "working directory", workingDir);
 		if (!suite.isEmpty()) {
-			JsTestConfigurationUtil.INSTANCE.validatePath(false, "suite file", Path.of(workingDir, suite).toString());
+			JsTestConfigurationUtil.INSTANCE.validatePath(false, "suite file", suite);
 		}
 		if (!configFile.isEmpty()) {
 			JsTestConfigurationUtil.INSTANCE.validatePath(false, "configuration file", configFile);
@@ -92,6 +91,7 @@ public class ESBenchRunConfig extends AbstractNodeTargetRunProfile implements No
 
 	@Override
 	public void readConfiguration(@NotNull Element element) throws InvalidDataException {
+		envData = EnvironmentVariablesData.readExternal(element);
 		workingDir = readXml(element, "working-dir");
 		configFile = readXml(element, "config");
 		nodeOptions = readXml(element, "node-options");
@@ -99,19 +99,17 @@ public class ESBenchRunConfig extends AbstractNodeTargetRunProfile implements No
 		pattern = readXml(element, "pattern");
 		esbenchOptions = readXml(element, "options");
 
-		envData = EnvironmentVariablesData.readExternal(element);
-
 		var pkg = JDOMExternalizerUtil.readCustomField(element, "esbench-package");
 		if (pkg != null) {
 			esbenchPackage = PKG_DESCRIPTOR.createPackage(pkg);
 		}
-
 		var interpreter = JDOMExternalizerUtil.readCustomField(element, "node-interpreter");
 		interpreterRef = NodeJsInterpreterRef.create(interpreter);
 	}
 
 	@Override
 	public void writeConfiguration(@NotNull Element element) {
+		envData.writeExternal(element);
 		writeXml(element, "working-dir", workingDir);
 		writeXml(element, "config", configFile);
 		writeXml(element, "node-options", nodeOptions);
@@ -119,12 +117,9 @@ public class ESBenchRunConfig extends AbstractNodeTargetRunProfile implements No
 		writeXml(element, "pattern", pattern);
 		writeXml(element, "options", esbenchOptions);
 
-		envData.writeExternal(element);
-
 		if (esbenchPackage != null) {
 			writeXml(element, "esbench-package", esbenchPackage.getSystemIndependentPath());
 		}
-
 		writeXml(element, "node-interpreter", interpreterRef.getReferenceName());
 	}
 
@@ -141,6 +136,6 @@ public class ESBenchRunConfig extends AbstractNodeTargetRunProfile implements No
 
 	@Override
 	public @Nullable RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment environment) throws ExecutionException {
-		return new ESBenchRunProfileState(this, environment);
+		return new ESBenchRunState(this, environment);
 	}
 }
