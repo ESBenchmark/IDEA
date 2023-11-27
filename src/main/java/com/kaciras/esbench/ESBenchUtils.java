@@ -1,5 +1,6 @@
 package com.kaciras.esbench;
 
+import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.lang.ecmascript6.psi.impl.ES6ImportPsiUtil;
 import com.intellij.lang.javascript.psi.JSCallExpression;
 import com.intellij.lang.javascript.psi.JSReferenceExpression;
@@ -18,6 +19,18 @@ public final class ESBenchUtils {
 	public static final String DEFINE_CONFIG = "defineConfig";
 
 	private ESBenchUtils() {}
+
+	/**
+	 * Check if both configs are ESBenchRunConfig and created from the same element.
+	 */
+	public static boolean isReusable(RunConfiguration self, RunConfiguration that) {
+		return self instanceof ESBenchRunConfig a
+			&& that instanceof ESBenchRunConfig b
+			&& a.suite.equals(b.suite)
+			&& a.pattern.equals(b.pattern)
+			&& a.configFile.equals(b.configFile)
+			&& a.workingDir.equals(b.workingDir);
+	}
 
 	/**
 	 * Get the function name of the call, return empty string if it does not have a name.

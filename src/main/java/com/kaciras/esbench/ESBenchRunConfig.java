@@ -54,7 +54,13 @@ public class ESBenchRunConfig extends AbstractNodeTargetRunProfile implements No
 	@Nullable
 	@Override
 	public NodeJsInterpreter getInterpreter() {
-		return this.interpreterRef.resolve(this.getProject());
+		return interpreterRef.resolve(this.getProject());
+	}
+
+	@NotNull
+	@Override
+	public EnvironmentVariablesData getEnvData() {
+		return envData;
 	}
 
 	@NotNull

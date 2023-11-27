@@ -14,6 +14,8 @@ import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import org.eclipse.lsp4j.jsonrpc.validation.NonNull;
 import org.jetbrains.annotations.NotNull;
 
+import static com.kaciras.esbench.ESBenchUtils.isReusable;
+
 public final class RunConfigProducer extends LazyRunConfigurationProducer<ESBenchRunConfig> {
 
 	@NotNull
@@ -33,18 +35,19 @@ public final class RunConfigProducer extends LazyRunConfigurationProducer<ESBenc
 			return false;
 		}
 		var leaf = location.getPsiElement();
-		var file = location.getVirtualFile();
-		if (file == null || !file.isInLocalFileSystem()) {
+		var vFile = location.getVirtualFile();
+		if (vFile == null) {
 			return false;
 		}
-
-		var dir = JsTestRunConfigurationProducer.guessWorkingDirectory(context.getProject(), file.getPath());
-
+		var suite = vFile.getPath();
+		var dir = JsTestRunConfigurationProducer.guessWorkingDirectory(context.getProject(), suite);
+		if (dir == null) {
+			return false;
+		}
 		config.workingDir = dir.getPath();
-		config.suite = file.getPath();
+		config.suite = suite;
 		config.pattern = getNamePattern(leaf);
 		config.setGeneratedName();
-
 		return true;
 	}
 
@@ -53,25 +56,11 @@ public final class RunConfigProducer extends LazyRunConfigurationProducer<ESBenc
 			@NotNull ESBenchRunConfig config,
 			@NotNull ConfigurationContext context
 	) {
-		var location = context.getLocation();
-		if (location == null) {
+		var newConfig = createConfigurationFromContext(context);
+		if (newConfig == null) {
 			return false;
 		}
-		var leaf = location.getPsiElement();
-		var file = location.getVirtualFile();
-
-		var template = (ESBenchRunConfig) this
-				.cloneTemplateConfiguration(context)
-				.getConfiguration();
-		var workingDir = JsTestRunConfigurationProducer.guessWorkingDirectory(context.getProject(), file.getPath());
-		if (workingDir == null) {
-			return false;
-		}
-
-		return config.configFile.equals(template.configFile)
-				&& config.workingDir.equals(workingDir.getPath())
-				&& config.suite.equals(file.getPath())
-				&& config.pattern.equals(getNamePattern(leaf));
+		return isReusable(config, newConfig.getConfiguration());
 	}
 
 	private @NonNull String getNamePattern(PsiElement element) {
