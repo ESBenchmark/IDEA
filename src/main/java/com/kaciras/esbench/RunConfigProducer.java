@@ -1,6 +1,8 @@
 package com.kaciras.esbench;
 
+import com.intellij.execution.RunManager;
 import com.intellij.execution.actions.ConfigurationContext;
+import com.intellij.execution.actions.ConfigurationFromContext;
 import com.intellij.execution.actions.LazyRunConfigurationProducer;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.ConfigurationTypeUtil;
@@ -8,6 +10,7 @@ import com.intellij.javascript.testing.JSTestRunnerUtil;
 import com.intellij.javascript.testing.JsTestRunConfigurationProducer;
 import com.intellij.lang.javascript.psi.JSCallExpression;
 import com.intellij.lang.javascript.psi.JSLiteralExpression;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.util.Ref;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
@@ -61,6 +64,28 @@ public final class RunConfigProducer extends LazyRunConfigurationProducer<ESBenc
 			return false;
 		}
 		return isReusable(config, newConfig.getConfiguration());
+	}
+
+	public ConfigurationFromContext findOrCreateConfigurationFromContext(@NotNull ConfigurationContext context) {
+		var fromContext = createConfigurationFromContext(context);
+		if (fromContext == null) {
+			return null;
+		}
+		var newConfig = fromContext.getConfiguration();
+		var runManager = RunManager.getInstance(context.getProject());
+
+		ProgressManager.checkCanceled();
+		var existing = getConfigurationSettingsList(runManager)
+				.stream()
+				.filter(c -> isReusable(c.getConfiguration(), newConfig))
+				.findFirst().orElse(null);
+
+		if (existing == null) {
+			runManager.setUniqueNameIfNeeded(newConfig);
+		} else {
+			fromContext.setConfigurationSettings(existing);
+		}
+		return fromContext;
 	}
 
 	private @NonNull String getNamePattern(PsiElement element) {
