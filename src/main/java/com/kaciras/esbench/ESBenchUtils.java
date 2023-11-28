@@ -5,6 +5,7 @@ import com.intellij.lang.ecmascript6.psi.impl.ES6ImportPsiUtil;
 import com.intellij.lang.javascript.psi.JSCallExpression;
 import com.intellij.lang.javascript.psi.JSLiteralExpression;
 import com.intellij.lang.javascript.psi.JSReferenceExpression;
+import com.intellij.openapi.util.text.Strings;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 
@@ -20,20 +21,21 @@ public final class ESBenchUtils {
 	public static final String DEFINE_SUITE = "defineSuite";
 	public static final String DEFINE_CONFIG = "defineConfig";
 
-	private ESBenchUtils() {
-	}
+	//@formatter:off
+	private ESBenchUtils() {}
 
 	/**
 	 * Check if both configs are ESBenchRunConfig and created from the same element.
 	 */
 	public static boolean isReusable(RunConfiguration self, RunConfiguration that) {
 		return self instanceof ESBenchRunConfig a
-				&& that instanceof ESBenchRunConfig b
-				&& a.suite.equals(b.suite)
-				&& a.pattern.equals(b.pattern)
-				&& a.configFile.equals(b.configFile)
-				&& a.workingDir.equals(b.workingDir);
+			&& that instanceof ESBenchRunConfig b
+			&& a.suite.equals(b.suite)
+			&& a.pattern.equals(b.pattern)
+			&& a.configFile.equals(b.configFile)
+			&& a.workingDir.equals(b.workingDir);
 	}
+	//@formatter:on
 
 	/**
 	 * Get the function name of the call, return empty string if it does not have a name.
@@ -113,6 +115,7 @@ public final class ESBenchUtils {
 		if (args.length < 2) {
 			return null;
 		}
-		return args[0] instanceof JSLiteralExpression literal ? literal.getStringValue() : null;
+		return args[0] instanceof JSLiteralExpression literal
+				? Strings.nullize(literal.getStringValue(), true) : null;
 	}
 }
