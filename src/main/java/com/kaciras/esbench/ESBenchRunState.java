@@ -26,12 +26,12 @@ import java.nio.file.Path;
 
 public class ESBenchRunState implements NodeBaseRunProfileState {
 
-	private final ESBenchRunConfig configuration;
+	private final ESBenchRunConfig config;
 	private final ExecutionEnvironment environment;
 	private final ConsoleCommandLineFolder folder;
 
-	public ESBenchRunState(ESBenchRunConfig configuration, ExecutionEnvironment environment) {
-		this.configuration = configuration;
+	public ESBenchRunState(ESBenchRunConfig config, ExecutionEnvironment environment) {
+		this.config = config;
 		this.environment = environment;
 		this.folder = new ConsoleCommandLineFolder("esbench");
 	}
@@ -40,12 +40,12 @@ public class ESBenchRunState implements NodeBaseRunProfileState {
 	@Override
 	public ProcessHandler startProcess(@Nullable CommandLineDebugConfigurator configurator) throws ExecutionException {
 		var project = environment.getProject();
-		var options = NodeTargetRunOptions.of(false, this.configuration);
-		var interpreter = configuration.interpreterRef.resolveNotNull(project);
+		var options = NodeTargetRunOptions.of(false, config);
+		var interpreter = config.interpreterRef.resolveNotNull(project);
 
 		try {
 			var run = new NodeTargetRun(interpreter, project, configurator, options);
-			this.configureCommandLine(run);
+			configureCommandLine(run);
 			return run.startProcess();
 		} catch (UnsupportedOperationException e) {
 			throw new ExecutionException(e.getLocalizedMessage());
@@ -53,42 +53,42 @@ public class ESBenchRunState implements NodeBaseRunProfileState {
 	}
 
 	private void configureCommandLine(NodeTargetRun targetRun) throws ExecutionException {
-		targetRun.setEnvData(configuration.envData);
-		targetRun.addNodeOptionsWithExpandedMacros(false, configuration.nodeOptions);
+		targetRun.setEnvData(config.envData);
+		targetRun.addNodeOptionsWithExpandedMacros(false, config.nodeOptions);
 
 		var commandLine = targetRun.getCommandLineBuilder();
 		commandLine.addParameter(targetRun.path(findBinFile()));
 
-		var parsed = ParametersListUtil.parse(configuration.esbenchOptions, false, true, false);
+		var parsed = ParametersListUtil.parse(config.esbenchOptions, false, true, false);
 		commandLine.addParameters(parsed);
 		folder.addPlaceholderTexts(parsed);
 
-		if (!configuration.configFile.isEmpty()) {
+		if (!config.configFile.isEmpty()) {
 			commandLine.addParameter("--config");
-			commandLine.addParameter(targetRun.path(configuration.configFile));
+			commandLine.addParameter(targetRun.path(config.configFile));
 			folder.addPlaceholderText("--config");
-			folder.addPlaceholderText(PathUtil.getFileName(configuration.configFile));
+			folder.addPlaceholderText(PathUtil.getFileName(config.configFile));
 		}
 
-		if (!configuration.suite.isEmpty()) {
+		if (!config.suite.isEmpty()) {
 			commandLine.addParameter("--file");
-			commandLine.addParameter(targetRun.path(configuration.suite));
+			commandLine.addParameter(targetRun.path(config.suite));
 			folder.addPlaceholderText("--file");
-			folder.addPlaceholderText(PathUtil.getFileName(configuration.suite));
+			folder.addPlaceholderText(PathUtil.getFileName(config.suite));
 		}
 
-		if (!configuration.pattern.isEmpty()) {
+		if (!config.pattern.isEmpty()) {
 			commandLine.addParameter("--name");
-			commandLine.addParameter(configuration.pattern);
+			commandLine.addParameter(config.pattern);
 			folder.addPlaceholderText("--name");
-			folder.addPlaceholderText(configuration.pattern);
+			folder.addPlaceholderText(config.pattern);
 		}
 
-		commandLine.setWorkingDirectory(targetRun.path(configuration.workingDir));
+		commandLine.setWorkingDirectory(targetRun.path(config.workingDir));
 	}
 
 	private Path findBinFile() throws ExecutionException {
-		var pkg = configuration.resolvePackage();
+		var pkg = config.resolvePackage();
 		var binFile = PackageJsonUtil.guessDefaultBinaryNameOfDependency(pkg);
 		var cli = pkg.findBinFile(binFile, null);
 		if (cli != null) {
@@ -101,8 +101,8 @@ public class ESBenchRunState implements NodeBaseRunProfileState {
 	@Override
 	public ExecutionResult createExecutionResult(@NotNull ProcessHandler processHandler) {
 		ProcessTerminatedListener.attach(processHandler);
-		var project = this.environment.getProject();
-		var workingDir = this.configuration.workingDir;
+		var project = environment.getProject();
+		var workingDir = config.workingDir;
 
 		// Command line folder doesn't work with predefined filters.
 		var console = new ConsoleViewImpl(project, GlobalSearchScope.allScope(project), true, false);

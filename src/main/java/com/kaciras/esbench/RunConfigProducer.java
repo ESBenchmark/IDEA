@@ -17,8 +17,6 @@ import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import org.eclipse.lsp4j.jsonrpc.validation.NonNull;
 import org.jetbrains.annotations.NotNull;
 
-import static com.kaciras.esbench.ESBenchUtils.isReusable;
-
 public final class RunConfigProducer extends LazyRunConfigurationProducer<ESBenchRunConfig> {
 
 	@NotNull
@@ -37,7 +35,6 @@ public final class RunConfigProducer extends LazyRunConfigurationProducer<ESBenc
 		if (location == null) {
 			return false;
 		}
-		var leaf = location.getPsiElement();
 		var vFile = location.getVirtualFile();
 		if (vFile == null) {
 			return false;
@@ -49,23 +46,22 @@ public final class RunConfigProducer extends LazyRunConfigurationProducer<ESBenc
 		}
 		config.workingDir = dir.getPath();
 		config.suite = suite;
-		config.pattern = getNamePattern(leaf);
+		config.pattern = getNamePattern(location.getPsiElement());
 		config.setGeneratedName();
 		return true;
 	}
 
 	@Override
-	public boolean isConfigurationFromContext(
-			@NotNull ESBenchRunConfig config,
-			@NotNull ConfigurationContext context
-	) {
+	public boolean isConfigurationFromContext(@NotNull ESBenchRunConfig config, @NotNull ConfigurationContext context) {
 		var newConfig = createConfigurationFromContext(context);
 		if (newConfig == null) {
 			return false;
 		}
-		return isReusable(config, newConfig.getConfiguration());
+		return ESBenchUtils.isReusable(config, newConfig.getConfiguration());
 	}
 
+	// More efficient replacement of base method, avoid multiple creation of ESBenchRunConfig.
+	@Override
 	public ConfigurationFromContext findOrCreateConfigurationFromContext(@NotNull ConfigurationContext context) {
 		var fromContext = createConfigurationFromContext(context);
 		if (fromContext == null) {
@@ -77,7 +73,7 @@ public final class RunConfigProducer extends LazyRunConfigurationProducer<ESBenc
 		ProgressManager.checkCanceled();
 		var existing = getConfigurationSettingsList(runManager)
 				.stream()
-				.filter(c -> isReusable(c.getConfiguration(), newConfig))
+				.filter(c -> ESBenchUtils.isReusable(c.getConfiguration(), newConfig))
 				.findFirst().orElse(null);
 
 		if (existing == null) {

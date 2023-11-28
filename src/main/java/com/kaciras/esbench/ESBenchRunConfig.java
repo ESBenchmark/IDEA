@@ -1,6 +1,5 @@
 package com.kaciras.esbench;
 
-import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configuration.EnvironmentVariablesData;
 import com.intellij.execution.configurations.ConfigurationFactory;
@@ -27,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class ESBenchRunConfig extends AbstractNodeTargetRunProfile implements NodeDebugRunConfiguration {
 
-	public static final NodePackageDescriptor PKG_DESCRIPTOR = new NodePackageDescriptor("@esbench/core");
+	public static final NodePackageDescriptor PKG_DESCRIPTOR = new NodePackageDescriptor(ESBenchUtils.PACKAGE);
 
 	@NotNull
 	public NodeJsInterpreterRef interpreterRef = NodeJsInterpreterRef.createProjectRef();
@@ -55,7 +54,7 @@ public class ESBenchRunConfig extends AbstractNodeTargetRunProfile implements No
 	@Nullable
 	@Override
 	public NodeJsInterpreter getInterpreter() {
-		return interpreterRef.resolve(this.getProject());
+		return interpreterRef.resolve(getProject());
 	}
 
 	@NotNull
@@ -67,7 +66,7 @@ public class ESBenchRunConfig extends AbstractNodeTargetRunProfile implements No
 	@NotNull
 	@Override
 	public SettingsEditor<ESBenchRunConfig> createConfigurationEditor() {
-		return new ConfigurationEditor(this.getProject());
+		return new ConfigurationEditor(getProject());
 	}
 
 	public NodePackage resolvePackage() {
@@ -87,7 +86,7 @@ public class ESBenchRunConfig extends AbstractNodeTargetRunProfile implements No
 	@Override
 	public void checkConfiguration() throws RuntimeConfigurationException {
 		NodeInterpreterUtil.checkForRunConfiguration(interpreterRef.resolve(getProject()));
-		resolvePackage().validateForRunConfiguration("@esbench/core");
+		resolvePackage().validateForRunConfiguration(ESBenchUtils.PACKAGE);
 		JsTestConfigurationUtil.INSTANCE.validatePath(true, "working directory", workingDir);
 		if (!suite.isEmpty()) {
 			JsTestConfigurationUtil.INSTANCE.validatePath(false, "suite file", suite);
@@ -143,7 +142,7 @@ public class ESBenchRunConfig extends AbstractNodeTargetRunProfile implements No
 	}
 
 	@Override
-	public @Nullable RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment environment) throws ExecutionException {
+	public @Nullable RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment environment) {
 		return new ESBenchRunState(this, environment);
 	}
 }

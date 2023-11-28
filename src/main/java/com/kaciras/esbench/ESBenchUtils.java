@@ -11,8 +11,9 @@ import java.util.Arrays;
 
 public final class ESBenchUtils {
 
+	public static final String PACKAGE = "@esbench/core";
 	public static final String CLIENT_MODULE = "@esbench/core/client";
-	public static final String HOST_MODULE = "@esbench/core";
+	public static final String HOST_MODULE = PACKAGE;
 	public static final String BENCH_1 = "bench";
 	public static final String BENCH_2 = "benchAsync";
 	public static final String DEFINE_SUITE = "defineSuite";

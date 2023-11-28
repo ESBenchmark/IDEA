@@ -23,44 +23,30 @@ import javax.swing.*;
 
 public final class ConfigurationEditor extends SettingsEditor<ESBenchRunConfig> {
 
+	private final TextFieldWithHistoryWithBrowseButton configFile;
 	private final NodeJsInterpreterField interpreter;
 	private final RawCommandLineEditor nodeOptions;
-	private final TextFieldWithBrowseButton workDir;
-	private final TextFieldWithHistoryWithBrowseButton configFile;
 	private final NodePackageField packagePath;
-	private final EnvironmentVariablesTextFieldWithBrowseButton envVars;
+	private final TextFieldWithBrowseButton workDir;
 	private final RawCommandLineEditor options;
+	private final EnvironmentVariablesTextFieldWithBrowseButton envVars;
 	private final TextFieldWithBrowseButton suite;
 	private final ExtendableTextField pattern;
-	private final JPanel panel;
 
 	public ConfigurationEditor(Project project) {
-		this.interpreter = new NodeJsInterpreterField(project);
-		this.nodeOptions = new RawCommandLineEditor();
-		this.workDir = new TextFieldWithBrowseButton();
-		this.configFile = new TextFieldWithHistoryWithBrowseButton();
-		this.packagePath = new NodePackageField(this.interpreter, ESBenchRunConfig.PKG_DESCRIPTOR, this::workDirEntry);
-		this.envVars = new EnvironmentVariablesTextFieldWithBrowseButton();
-		this.options = new RawCommandLineEditor();
-		this.suite = new TextFieldWithBrowseButton();
-		this.pattern = new ExtendableTextField(0);
+		configFile = new TextFieldWithHistoryWithBrowseButton();
+		interpreter = new NodeJsInterpreterField(project);
+		nodeOptions = new RawCommandLineEditor();
+		packagePath = new NodePackageField(interpreter, ESBenchRunConfig.PKG_DESCRIPTOR, this::workDirEntry);
+		workDir = new TextFieldWithBrowseButton();
+		options = new RawCommandLineEditor();
+		envVars = new EnvironmentVariablesTextFieldWithBrowseButton();
+		suite = new TextFieldWithBrowseButton();
+		pattern = new ExtendableTextField(0);
 
 		SwingHelper.installFileCompletionAndBrowseDialog(project, configFile, "Select ESBench Configuration File", FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor());
 		SwingHelper.installFileCompletionAndBrowseDialog(project, workDir, JavaScriptBundle.message("rc.workingDirectory.browseDialogTitle"), FileChooserDescriptorFactory.createSingleFolderDescriptor());
 		SwingHelper.installFileCompletionAndBrowseDialog(project, suite, "Select Benchmark Suite", FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor());
-
-		this.panel = new FormBuilder().setAlignLabelOnRight(false)
-				.addLabeledComponent("&Configuration file:", this.configFile)
-				.addSeparator(8)
-				.addLabeledComponent(NodeJsInterpreterField.getLabelTextForComponent(), this.interpreter, 8)
-				.addLabeledComponent(JavaScriptBundle.message("rc.nodeOptions.label"), this.nodeOptions)
-				.addLabeledComponent("ESBench package:", this.packagePath)
-				.addLabeledComponent(JavaScriptBundle.message("rc.workingDirectory.label"), this.workDir)
-				.addLabeledComponent("ESBench options", this.options)
-				.addLabeledComponent(JavaScriptBundle.message("rc.environmentVariables.label"), this.envVars)
-				.addSeparator(8)
-				.addLabeledComponent("Suite file:", this.suite)
-				.addLabeledComponent("Benchmark name:", this.pattern).getPanel();
 	}
 
 	private VirtualFile workDirEntry() {
@@ -69,7 +55,18 @@ public final class ConfigurationEditor extends SettingsEditor<ESBenchRunConfig> 
 
 	@Override
 	protected @NotNull JComponent createEditor() {
-		return this.panel;
+		return new FormBuilder().setAlignLabelOnRight(false)
+				.addLabeledComponent("&Configuration file:", configFile)
+				.addSeparator(8)
+				.addLabeledComponent(NodeJsInterpreterField.getLabelTextForComponent(), interpreter, 8)
+				.addLabeledComponent(JavaScriptBundle.message("rc.nodeOptions.label"), nodeOptions)
+				.addLabeledComponent("ESBench package:", packagePath)
+				.addLabeledComponent(JavaScriptBundle.message("rc.workingDirectory.label"), workDir)
+				.addLabeledComponent("ESBench options", options)
+				.addLabeledComponent(JavaScriptBundle.message("rc.environmentVariables.label"), envVars)
+				.addSeparator(8)
+				.addLabeledComponent("Suite file:", suite)
+				.addLabeledComponent("Benchmark name:", pattern).getPanel();
 	}
 
 	@Override
