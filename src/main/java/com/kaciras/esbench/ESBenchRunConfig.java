@@ -19,6 +19,7 @@ import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.JDOMExternalizerUtil;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.util.PathUtil;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
@@ -73,7 +74,8 @@ public class ESBenchRunConfig extends AbstractNodeTargetRunProfile implements No
 		if (esbenchPackage != null) {
 			return esbenchPackage;
 		}
-		return PKG_DESCRIPTOR.findFirstDirectDependencyPackage(getProject(), null, null);
+		var file = LocalFileSystem.getInstance().findFileByPath(suite);
+		return PKG_DESCRIPTOR.findFirstDirectDependencyPackage(getProject(), null, file);
 	}
 
 	@Nullable

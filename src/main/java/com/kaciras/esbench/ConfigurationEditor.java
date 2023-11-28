@@ -2,6 +2,7 @@ package com.kaciras.esbench;
 
 import com.intellij.execution.configuration.EnvironmentVariablesTextFieldWithBrowseButton;
 import com.intellij.javascript.nodejs.interpreter.NodeJsInterpreterField;
+import com.intellij.javascript.nodejs.packages.NodePackagesKt;
 import com.intellij.javascript.nodejs.util.NodePackageField;
 import com.intellij.lang.javascript.JavaScriptBundle;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
@@ -91,7 +92,7 @@ public final class ConfigurationEditor extends SettingsEditor<ESBenchRunConfig> 
 		config.interpreterRef = interpreter.getInterpreterRef();
 		config.nodeOptions = nodeOptions.getText();
 		config.esbenchOptions = options.getText();
-		config.esbenchPackage = packagePath.getSelected();
+		config.esbenchPackage = NodePackagesKt.nullize(packagePath.getSelected(), false);
 		config.envData = envVars.getData();
 		config.pattern = pattern.getText();
 		config.configFile = FileUtil.toSystemIndependentName(configFile.getText());
