@@ -43,6 +43,9 @@ public final class RunLineMarker extends RunLineMarkerContributor {
 		// If is bench() or benchAsync(), find the topmost call.
 		var name = leaf.getChars();
 		if (name.equals(BENCH_1) || name.equals(BENCH_2)) {
+			if (ESBenchUtils.getBenchName(top) == null) {
+				return false; // Arguments is invalid.
+			}
 			top = PsiTreeUtil.getTopmostParentOfType(top, JSCallExpression.class);
 			if (top == null) return false;
 		}

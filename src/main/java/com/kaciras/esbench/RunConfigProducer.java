@@ -9,7 +9,6 @@ import com.intellij.execution.configurations.ConfigurationTypeUtil;
 import com.intellij.javascript.testing.JSTestRunnerUtil;
 import com.intellij.javascript.testing.JsTestRunConfigurationProducer;
 import com.intellij.lang.javascript.psi.JSCallExpression;
-import com.intellij.lang.javascript.psi.JSLiteralExpression;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.util.Ref;
 import com.intellij.psi.PsiElement;
@@ -88,12 +87,10 @@ public final class RunConfigProducer extends LazyRunConfigurationProducer<ESBenc
 		if (((LeafPsiElement) element).getChars().charAt(0) == 'd') {
 			return ""; // Marked element is `defineSuite`.
 		}
-		var args = ((JSCallExpression) element.getParent().getParent()).getArguments();
-		if (args.length == 0 || !(args[0] instanceof JSLiteralExpression literal)) {
-			return ""; // bench[Async]() but missing the name argument.
-		}
-		if (!(literal.getValue() instanceof String name)) {
-			return ""; // The name argument is invalid.
+		var expression = (JSCallExpression) element.getParent().getParent();
+		var name = ESBenchUtils.getBenchName(expression);
+		if (name == null) {
+			return ""; // Arguments of bench[Async]() is invalid.
 		}
 		return "^" + JSTestRunnerUtil.escapeJavaScriptRegexp(name) + "$";
 	}

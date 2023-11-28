@@ -3,6 +3,7 @@ package com.kaciras.esbench;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.lang.ecmascript6.psi.impl.ES6ImportPsiUtil;
 import com.intellij.lang.javascript.psi.JSCallExpression;
+import com.intellij.lang.javascript.psi.JSLiteralExpression;
 import com.intellij.lang.javascript.psi.JSReferenceExpression;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
@@ -19,18 +20,19 @@ public final class ESBenchUtils {
 	public static final String DEFINE_SUITE = "defineSuite";
 	public static final String DEFINE_CONFIG = "defineConfig";
 
-	private ESBenchUtils() {}
+	private ESBenchUtils() {
+	}
 
 	/**
 	 * Check if both configs are ESBenchRunConfig and created from the same element.
 	 */
 	public static boolean isReusable(RunConfiguration self, RunConfiguration that) {
 		return self instanceof ESBenchRunConfig a
-			&& that instanceof ESBenchRunConfig b
-			&& a.suite.equals(b.suite)
-			&& a.pattern.equals(b.pattern)
-			&& a.configFile.equals(b.configFile)
-			&& a.workingDir.equals(b.workingDir);
+				&& that instanceof ESBenchRunConfig b
+				&& a.suite.equals(b.suite)
+				&& a.pattern.equals(b.pattern)
+				&& a.configFile.equals(b.configFile)
+				&& a.workingDir.equals(b.workingDir);
 	}
 
 	/**
@@ -82,7 +84,7 @@ public final class ESBenchUtils {
 	 * matchUnquoted("'foo'", "foo"); -> true
 	 * </code>
 	 *
-	 * @param value The maybe quoted text.
+	 * @param value  The maybe quoted text.
 	 * @param target Unquoted text.
 	 * @return true if the value without quote is equals to the target, otherwise false.
 	 */
@@ -98,5 +100,19 @@ public final class ESBenchUtils {
 		return (quote == '"' || quote == '\'')
 				&& value.charAt(length - 1) == quote
 				&& value.indexOf(target) == 1;
+	}
+
+	/**
+	 * Get the name of the benchmark defined by `bench[Async]()`.
+	 *
+	 * @param expression The expression of `bench[Async]()` call.
+	 * @return Name of the benchmark, or null if arguments is invalid.
+	 */
+	public static String getBenchName(JSCallExpression expression) {
+		var args = expression.getArguments();
+		if (args.length < 2) {
+			return null;
+		}
+		return args[0] instanceof JSLiteralExpression literal ? literal.getStringValue() : null;
 	}
 }
