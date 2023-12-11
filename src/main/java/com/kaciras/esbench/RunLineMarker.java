@@ -47,7 +47,9 @@ public final class RunLineMarker extends RunLineMarkerContributor {
 				return false; // Arguments is invalid.
 			}
 			top = PsiTreeUtil.getTopmostParentOfType(top, JSCallExpression.class);
-			if (top == null) return false;
+			if (top == null) {
+				return false; // Not inside defineSuite().
+			}
 		}
 
 		// The topmost statement should be `export default defineSuite()`
