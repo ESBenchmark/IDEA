@@ -7,9 +7,15 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import org.jetbrains.annotations.NotNull;
 
+import static com.intellij.icons.AllIcons.RunConfigurations.TestState.Run;
+
 public final class ESBenchAction extends AnAction {
 
 	private static final RunConfigProducer producer = new RunConfigProducer();
+
+	public ESBenchAction(String text) {
+		super(text, text, Run);
+	}
 
 	@Override
 	public void actionPerformed(@NotNull AnActionEvent e) {
