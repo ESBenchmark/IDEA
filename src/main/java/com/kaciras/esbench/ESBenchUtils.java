@@ -105,17 +105,19 @@ public final class ESBenchUtils {
 	}
 
 	/**
-	 * Get the name of the benchmark defined by `bench[Async]()`.
+	 * Get the name of the benchmark case defined by `bench[Async]()`.
 	 *
 	 * @param expression The expression of `bench[Async]()` call.
-	 * @return Name of the benchmark, or null if arguments is invalid.
+	 * @return Name of the case, or null if arguments is invalid.
 	 */
 	public static String getBenchName(JSCallExpression expression) {
 		var args = expression.getArguments();
 		if (args.length < 2) {
 			return null;
 		}
-		return args[0] instanceof JSLiteralExpression literal
-				? Strings.nullize(literal.getStringValue(), true) : null;
+		if (!(args[0] instanceof JSLiteralExpression literal)) {
+			return null;
+		}
+		return Strings.nullize(literal.getStringValue(), true);
 	}
 }

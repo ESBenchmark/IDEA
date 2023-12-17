@@ -12,9 +12,10 @@ import static com.intellij.icons.AllIcons.Actions.ProfileYellow;
 public final class ESBenchConfigType extends SimpleConfigurationType {
 
 	public static final String ID = "ESBenchConfiguration";
+	public static final String NAME = "ESBench";
 
 	public ESBenchConfigType() {
-		super(ID, "ESBench", null, NotNullLazyValue.createValue(() -> ProfileYellow));
+		super(ID, NAME, null, NotNullLazyValue.lazy(() -> ProfileYellow));
 	}
 
 	@NotNull
@@ -25,6 +26,6 @@ public final class ESBenchConfigType extends SimpleConfigurationType {
 	@NotNull
 	@Override
 	public RunConfiguration createTemplateConfiguration(@NotNull Project project) {
-		return new ESBenchRunConfig(project, this, "ESBench");
+		return new ESBenchRunConfig(project, this, NAME);
 	}
 }

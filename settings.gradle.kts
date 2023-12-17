@@ -5,4 +5,4 @@ pluginManagement {
     }
 }
 
-rootProject.name = "esbench-idea"
+rootProject.name = "ESBench-IDEA"

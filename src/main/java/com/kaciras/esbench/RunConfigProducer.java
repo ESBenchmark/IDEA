@@ -59,7 +59,7 @@ public final class RunConfigProducer extends LazyRunConfigurationProducer<ESBenc
 		return ESBenchUtils.isReusable(config, newConfig.getConfiguration());
 	}
 
-	// More efficient replacement of base method, avoid multiple creation of ESBenchRunConfig.
+	// More efficient replacement of the base method, avoid unnecessary creation of ESBenchRunConfig.
 	@Override
 	public ConfigurationFromContext findOrCreateConfigurationFromContext(@NotNull ConfigurationContext context) {
 		var fromContext = createConfigurationFromContext(context);
