@@ -4,7 +4,6 @@ import com.intellij.execution.lineMarker.RunLineMarkerContributor;
 import com.intellij.lang.ecmascript6.psi.JSExportAssignment;
 import com.intellij.lang.javascript.psi.JSCallExpression;
 import com.intellij.lang.javascript.psi.JSReferenceExpression;
-import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -28,8 +27,9 @@ public final class RunLineMarker extends RunLineMarkerContributor {
 		if (!hasImportDefineSuite(element.getContainingFile())) {
 			return null; // The file must have import defineSuite from ESBench.
 		}
-		var action = new ESBenchAction("Run " + description);
-		return new Info(Run, new AnAction[]{action}, x -> "Run Benchmark");
+		var run = new ESBenchAction("Run" + description, false);
+		var debug = new ESBenchAction("Debug" + description, true);
+		return new Info(Run, x -> "Run Benchmark", run, debug);
 	}
 
 	private @Nullable String detectEntryPoint(LeafPsiElement leaf) {
