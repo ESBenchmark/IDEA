@@ -27,12 +27,19 @@ public final class RunLineMarker extends RunLineMarkerContributor {
 		if (!hasImportDefineSuite(element.getContainingFile())) {
 			return null; // The file must have import defineSuite from ESBench.
 		}
-		var run = new ESBenchAction("Run" + description, false);
-		var debug = new ESBenchAction("Debug" + description, true);
+		var run = new ESBenchAction("Run " + description, false);
+		var debug = new ESBenchAction("Debug " + description, true);
 		return new Info(Run, x -> "Run Benchmark", run, debug);
 	}
 
-	private @Nullable String detectEntryPoint(LeafPsiElement leaf) {
+	/**
+	 * Check whatever the leaf element defines a benchmark (suite or case).
+	 * You may also want to check the file imports the ESBench package.
+	 *
+	 * @param leaf The element to check.
+	 * @return Description of the benchmark, or null if the element is not that.
+	 */
+	public static @Nullable String detectEntryPoint(LeafPsiElement leaf) {
 		// First check the element is a method call.
 		if (!(leaf.getParent() instanceof JSReferenceExpression ref)) {
 			return null;
