@@ -13,9 +13,9 @@ import java.util.Arrays;
 
 public final class ESBenchUtils {
 
-	public static final String PACKAGE = "@esbench/core";
-	public static final String CLIENT_MODULE = "@esbench/core/client";
-	public static final String HOST_MODULE = PACKAGE;
+	public static final String PACKAGE = "esbench";
+	public static final String CLIENT_MODULE = PACKAGE;
+	public static final String HOST_MODULE = "esbench/host";
 	public static final String BENCH_1 = "bench";
 	public static final String BENCH_2 = "benchAsync";
 	public static final String DEFINE_SUITE = "defineSuite";
@@ -53,14 +53,14 @@ public final class ESBenchUtils {
 	}
 
 	/**
-	 * Check the file has <code>import { defineSuite } from "@esbench/core/client"</code>
+	 * Check the file has <code>import { defineSuite } from "esbench"</code>
 	 */
 	public static boolean hasImportDefineSuite(PsiFile file) {
 		return hasImport(file, CLIENT_MODULE, DEFINE_SUITE);
 	}
 
 	/**
-	 * Check the file has <code>import { defineConfig } from "@esbench/core"</code>
+	 * Check the file has <code>import { defineConfig } from "esbench/host"</code>
 	 */
 	public static boolean hasImportDefineConfig(PsiFile file) {
 		return hasImport(file, HOST_MODULE, DEFINE_CONFIG);

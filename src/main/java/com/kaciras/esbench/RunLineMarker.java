@@ -22,7 +22,7 @@ public final class RunLineMarker extends RunLineMarkerContributor {
 		}
 		var description = detectEntryPoint(leaf);
 		if (description == null) {
-			return null; // Check the element is defineSuite() or bench[Async]().
+			return null;
 		}
 		if (!hasImportDefineSuite(element.getContainingFile())) {
 			return null; // The file must have import defineSuite from ESBench.
@@ -50,7 +50,7 @@ public final class RunLineMarker extends RunLineMarkerContributor {
 		var function = leaf.getChars();
 		var description = "Suite";
 
-		// If is bench() or baseline(), find the topmost call.
+		// If is bench() or benchAsync(), find the topmost call.
 		if (function.equals(BENCH_1) || function.equals(BENCH_2)) {
 			description = ESBenchUtils.getBenchName(top);
 			if (description == null) {
