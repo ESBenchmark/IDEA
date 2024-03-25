@@ -1,6 +1,6 @@
 plugins {
     id("java")
-    id("org.jetbrains.intellij") version "1.16.1"
+    id("org.jetbrains.intellij") version "1.17.2"
 }
 
 group = "com.kaciras"
@@ -11,7 +11,7 @@ repositories {
 }
 
 intellij {
-    version.set("2023.2")
+    version.set("2023.3")
 
     // Target IDE Platform, IU = Intellij Ultimate
     type.set("IU")
@@ -26,7 +26,7 @@ tasks {
     }
 
     patchPluginXml {
-        sinceBuild.set("232")
+        sinceBuild.set("233")
         untilBuild.set("")
     }
 
