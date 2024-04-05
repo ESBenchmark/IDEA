@@ -7,7 +7,7 @@ import com.intellij.execution.actions.LazyRunConfigurationProducer;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.ConfigurationTypeUtil;
 import com.intellij.javascript.testing.JSTestRunnerUtil;
-import com.intellij.javascript.testing.JsTestRunConfigurationProducer;
+import com.intellij.javascript.testing.runConfiguration.JsTestRunConfigurationProducer;
 import com.intellij.lang.javascript.psi.JSCallExpression;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.util.Ref;
