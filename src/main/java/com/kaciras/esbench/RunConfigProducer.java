@@ -69,6 +69,10 @@ public final class RunConfigProducer extends LazyRunConfigurationProducer<ESBenc
 		var newConfig = fromContext.getConfiguration();
 		var runManager = RunManager.getInstance(context.getProject());
 
+		/*
+		 * findExistingConfiguration() calls isConfigurationFromContext() in a loop,
+		 * it will cause unnecessary creation of configuration.
+		 */
 		ProgressManager.checkCanceled();
 		var existing = getConfigurationSettingsList(runManager)
 				.stream()
