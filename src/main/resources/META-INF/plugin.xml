@@ -2,7 +2,7 @@
 	<id>com.kaciras.esbench</id>
 	<name>ESBench-IDEA</name>
 	<description>Run ESBench suites by clicking on the line marker</description>
-	<vendor url="https://github.com/Kaciras/ESBench-IDEA">Kaciras</vendor>
+	<vendor url="https://github.com/ESBenchmark/IDEA">Kaciras</vendor>
 
 	<depends>com.intellij.modules.platform</depends>
 	<depends>NodeJS</depends>
