@@ -1,6 +1,6 @@
 <idea-plugin>
 	<id>com.kaciras.esbench</id>
-	<name>ESBench-IDEA</name>
+	<name>ESBench</name>
 	<description>Run ESBench suites by clicking on the line marker</description>
 	<vendor url="https://github.com/ESBenchmark/IDEA">Kaciras</vendor>
 
