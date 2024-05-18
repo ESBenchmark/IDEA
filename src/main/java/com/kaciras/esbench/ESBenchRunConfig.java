@@ -4,6 +4,7 @@ import com.intellij.execution.Executor;
 import com.intellij.execution.configuration.EnvironmentVariablesData;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.RunProfileState;
+import com.intellij.execution.configurations.RuntimeConfigurationError;
 import com.intellij.execution.configurations.RuntimeConfigurationException;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.javascript.nodejs.debug.NodeDebugRunConfiguration;
@@ -23,6 +24,9 @@ import com.intellij.util.PathUtil;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.nio.file.InvalidPathException;
+import java.nio.file.Paths;
 
 public class ESBenchRunConfig extends AbstractNodeTargetRunProfile implements NodeDebugRunConfiguration {
 
@@ -87,12 +91,18 @@ public class ESBenchRunConfig extends AbstractNodeTargetRunProfile implements No
 	public void checkConfiguration() throws RuntimeConfigurationException {
 		NodeInterpreterUtil.checkForRunConfiguration(interpreterRef.resolve(getProject()));
 		resolvePackage().validateForRunConfiguration(ESBenchUtils.PACKAGE);
-		JsTestConfigurationUtil.INSTANCE.validatePath(true, "working directory", workingDir);
-		if (!suite.isEmpty()) {
-			JsTestConfigurationUtil.INSTANCE.validatePath(false, "suite file", suite);
-		}
+		JsTestConfigurationUtil.INSTANCE.validatePath(true, "Working directory", workingDir);
+
 		if (!configFile.isEmpty()) {
-			JsTestConfigurationUtil.INSTANCE.validatePath(false, "configuration file", configFile);
+			JsTestConfigurationUtil.INSTANCE.validatePath(false, "Configuration file", configFile);
+		}
+
+		if (!suite.isEmpty()) {
+			try {
+				Paths.get(suite);
+			} catch (InvalidPathException ignore) {
+				throw new RuntimeConfigurationError("Suite file must be a valid path");
+			}
 		}
 	}
 
