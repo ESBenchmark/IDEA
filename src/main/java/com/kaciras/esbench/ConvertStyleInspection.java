@@ -6,6 +6,7 @@ import com.intellij.codeInspection.ProblemDescriptor;
 import com.intellij.codeInspection.ProblemsHolder;
 import com.intellij.codeInspection.util.IntentionFamilyName;
 import com.intellij.lang.ecmascript6.psi.ES6ExportDefaultAssignment;
+import com.intellij.lang.ecmascript6.psi.JSExportAssignment;
 import com.intellij.lang.javascript.inspections.JSInspection;
 import com.intellij.lang.javascript.psi.*;
 import com.intellij.lang.javascript.psi.impl.JSChangeUtil;
@@ -19,61 +20,65 @@ import org.jetbrains.annotations.NotNull;
 public final class ConvertStyleInspection extends JSInspection {
 
 	@Override
-	protected @NotNull PsiElementVisitor createVisitor(
+	@NotNull
+	protected PsiElementVisitor createVisitor(
 			@NotNull ProblemsHolder problemsHolder,
 			@NotNull LocalInspectionToolSession localInspectionToolSession
 	) {
-		return new Visitor(problemsHolder);
+		return new SuiteStyleVisitor(problemsHolder);
 	}
 
-	private static class Visitor extends JSElementVisitor {
+	private static class SuiteStyleVisitor extends JSElementVisitor {
 
 		private final ProblemsHolder holder;
 
-		private Visitor(ProblemsHolder holder) {
+		private SuiteStyleVisitor(ProblemsHolder holder) {
 			this.holder = holder;
 		}
 
 		@Override
 		public void visitES6ExportDefaultAssignment(@NotNull ES6ExportDefaultAssignment node) {
-			var expr = node.getExpression();
-			if (!(expr instanceof JSCallExpression call)) {
-				return;
-			}
-			var name = ESBenchUtils.getMethodName(call);
-			if (!"defineSuite".equals(name) || !ESBenchUtils.hasImportDefineSuite(node.getContainingFile())) {
-				return;
+			var call = checkDefineSuite(node);
+			if (call == null) {
+				return; // Is not a suite file.
 			}
 			var args = call.getArguments();
 			if (args.length != 1) {
-				return;
+				return; // Not only 1 argument in defineSuite().
 			}
+
 			if (args[0] instanceof JSObjectLiteralExpression object) {
 				var props = object.getPropertiesIncludingSpreads();
 				if (props.length != 1) {
 					return;
 				}
-				if (props[0] instanceof JSFunctionProperty method) {
-					holder.registerProblem(node, "Test", new ToFunctionalQuickFix(method, object));
+				if (props[0] instanceof JSFunctionProperty method && "setup".equals(method.getName())) {
+					holder.registerProblem(node, "", new ToFunctionalQuickFix(method, object));
 				}
 			} else if (args[0] instanceof JSFunctionExpression fn) {
-				holder.registerProblem(node, "Test", new ToObjectQuickFix(fn, fn));
+				holder.registerProblem(node, "", new ToObjectQuickFix(fn));
 			}
+		}
+
+		private static JSCallExpression checkDefineSuite(JSExportAssignment node) {
+			var expr = node.getExpression();
+			if (!(expr instanceof JSCallExpression call)) {
+				return null;
+			}
+			var name = ESBenchUtils.getMethodName(call);
+			if (!ESBenchUtils.DEFINE_SUITE.equals(name)) {
+				return null;
+			}
+			return ESBenchUtils.hasImportDefineSuite(node.getContainingFile()) ? call : null;
 		}
 	}
 
-	private static class ToFunctionalQuickFix implements LocalQuickFix {
+	private record ToFunctionalQuickFix(JSFunction setup, JSExpression suite) implements LocalQuickFix {
 
-		private final JSFunction setup;
-		private final JSExpression suite;
-
-		public ToFunctionalQuickFix(JSFunction setup, JSExpression suite) {
-			this.setup = setup;
-			this.suite = suite;
-		}
-
+		@IntentionFamilyName
+		@NotNull
 		@Override
-		public @IntentionFamilyName @NotNull String getFamilyName() {
+		public String getFamilyName() {
 			return "Convert to function-style";
 		}
 
@@ -85,18 +90,12 @@ public final class ConvertStyleInspection extends JSInspection {
 		}
 	}
 
-	private static class ToObjectQuickFix implements LocalQuickFix {
+	private record ToObjectQuickFix(JSFunctionExpression setup) implements LocalQuickFix {
 
-		private final JSFunctionExpression setup;
-		private final JSExpression suite;
-
-		public ToObjectQuickFix(JSFunctionExpression setup, JSExpression suite) {
-			this.setup = setup;
-			this.suite = suite;
-		}
-
+		@IntentionFamilyName
+		@NotNull
 		@Override
-		public @IntentionFamilyName @NotNull String getFamilyName() {
+		public String getFamilyName() {
 			return "Convert to object-style";
 		}
 
@@ -104,7 +103,7 @@ public final class ConvertStyleInspection extends JSInspection {
 		public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor descriptor) {
 			var method = JSFunctionsRefactoringUtil.createFunctionProperty(setup, "setup");
 			var result = JSPsiElementFactory.createJSExpression('{' + method.getText() + '}', method, JSObjectLiteralExpression.class);
-			var expression = JSChangeUtil.replaceExpression(suite, result);
+			var expression = JSChangeUtil.replaceExpression(setup, result);
 			JSRefactoringUtil.reformatElementWithoutBody(expression, expression);
 		}
 	}
