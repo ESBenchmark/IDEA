@@ -19,5 +19,12 @@
 		<implicitUsageProvider
 				implementation="com.kaciras.esbench.SuiteUsageProvider"
 		/>
+		<localInspection
+				language="JavaScript"
+				displayName="Convert suite style"
+				groupPath="ESBench"
+				enabledByDefault="true"
+				level="INFORMATION"
+				implementationClass="com.kaciras.esbench.ConvertStyleInspection"/>
 	</extensions>
 </idea-plugin>
