@@ -17,7 +17,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElementVisitor;
 import org.jetbrains.annotations.NotNull;
 
-public final class ConvertStyleInspection extends JSInspection {
+public final class SuiteStyleInspection extends JSInspection {
 
 	@Override
 	@NotNull

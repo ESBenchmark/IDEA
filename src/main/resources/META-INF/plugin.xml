@@ -25,6 +25,6 @@
 				groupName="ESBench"
 				enabledByDefault="true"
 				level="INFORMATION"
-				implementationClass="com.kaciras.esbench.ConvertStyleInspection"/>
+				implementationClass="com.kaciras.esbench.SuiteStyleInspection"/>
 	</extensions>
 </idea-plugin>
