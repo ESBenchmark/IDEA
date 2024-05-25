@@ -22,7 +22,7 @@
 		<localInspection
 				language="JavaScript"
 				displayName="Convert suite style"
-				groupPath="ESBench"
+				groupName="ESBench"
 				enabledByDefault="true"
 				level="INFORMATION"
 				implementationClass="com.kaciras.esbench.ConvertStyleInspection"/>
