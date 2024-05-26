@@ -1,0 +1,7 @@
+import { defineSuite } from "esbench";
+
+export default defineSuite({
+	setup(scene) {
+		scene.bench("add", () => 1 + 1);
+	}
+});

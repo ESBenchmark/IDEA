@@ -19,12 +19,10 @@
 		<implicitUsageProvider
 				implementation="com.kaciras.esbench.SuiteUsageProvider"
 		/>
-		<localInspection
-				language="JavaScript"
-				displayName="Convert suite style"
-				groupName="ESBench"
-				enabledByDefault="true"
-				level="INFORMATION"
-				implementationClass="com.kaciras.esbench.SuiteStyleInspection"/>
+		<intentionAction>
+			<language>JavaScript</language>
+			<category>ESBench</category>
+			<className>com.kaciras.esbench.SuiteStyleIntention</className>
+		</intentionAction>
 	</extensions>
 </idea-plugin>
