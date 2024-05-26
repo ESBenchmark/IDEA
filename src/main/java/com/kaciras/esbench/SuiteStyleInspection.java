@@ -4,7 +4,6 @@ import com.intellij.codeInspection.LocalInspectionToolSession;
 import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.ProblemDescriptor;
 import com.intellij.codeInspection.ProblemsHolder;
-import com.intellij.codeInspection.util.IntentionFamilyName;
 import com.intellij.lang.ecmascript6.psi.ES6ExportDefaultAssignment;
 import com.intellij.lang.ecmascript6.psi.JSExportAssignment;
 import com.intellij.lang.javascript.inspections.JSInspection;
@@ -18,6 +17,8 @@ import com.intellij.psi.PsiElementVisitor;
 import org.jetbrains.annotations.NotNull;
 
 public final class SuiteStyleInspection extends JSInspection {
+
+	static final String HINT = "Suite style can be converted";
 
 	@Override
 	@NotNull
@@ -53,10 +54,10 @@ public final class SuiteStyleInspection extends JSInspection {
 					return;
 				}
 				if (props[0] instanceof JSFunctionProperty method && "setup".equals(method.getName())) {
-					holder.registerProblem(node, "", new ToFunctionalQuickFix(method, object));
+					holder.registerProblem(node, HINT, new ToFunctionalQuickFix(method, object));
 				}
 			} else if (args[0] instanceof JSFunctionExpression fn) {
-				holder.registerProblem(node, "", new ToObjectQuickFix(fn));
+				holder.registerProblem(node, HINT, new ToObjectQuickFix(fn));
 			}
 		}
 
@@ -75,11 +76,10 @@ public final class SuiteStyleInspection extends JSInspection {
 
 	private record ToFunctionalQuickFix(JSFunction setup, JSExpression suite) implements LocalQuickFix {
 
-		@IntentionFamilyName
-		@NotNull
 		@Override
+		@NotNull
 		public String getFamilyName() {
-			return "Convert to function-style";
+			return "ESBench: Convert to function-style";
 		}
 
 		@Override
@@ -92,11 +92,10 @@ public final class SuiteStyleInspection extends JSInspection {
 
 	private record ToObjectQuickFix(JSFunctionExpression setup) implements LocalQuickFix {
 
-		@IntentionFamilyName
-		@NotNull
 		@Override
+		@NotNull
 		public String getFamilyName() {
-			return "Convert to object-style";
+			return "ESBench: Convert to object-style";
 		}
 
 		@Override

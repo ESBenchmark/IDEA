@@ -16,7 +16,8 @@ import static com.kaciras.esbench.ESBenchUtils.*;
 public final class RunLineMarker extends RunLineMarkerContributor {
 
 	@Override
-	public @Nullable Info getInfo(@NotNull PsiElement element) {
+	@Nullable
+	public Info getInfo(@NotNull PsiElement element) {
 		if (!(element instanceof LeafPsiElement leaf)) {
 			return null; // Only mark leaf elements for better performance.
 		}
@@ -39,7 +40,8 @@ public final class RunLineMarker extends RunLineMarkerContributor {
 	 * @param leaf The element to check.
 	 * @return Description of the benchmark, or null if the element is not that.
 	 */
-	public static @Nullable String detectEntryPoint(LeafPsiElement leaf) {
+	@Nullable
+	public static String detectEntryPoint(LeafPsiElement leaf) {
 		// First check the element is a method call.
 		if (!(leaf.getParent() instanceof JSReferenceExpression ref)) {
 			return null;

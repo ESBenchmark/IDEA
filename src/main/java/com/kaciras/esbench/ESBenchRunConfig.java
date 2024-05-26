@@ -152,7 +152,8 @@ public class ESBenchRunConfig extends AbstractNodeTargetRunProfile implements No
 	}
 
 	@Override
-	public @Nullable RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment environment) {
+	@Nullable
+	public RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment environment) {
 		return new ESBenchRunState(this, environment);
 	}
 }

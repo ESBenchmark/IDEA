@@ -54,7 +54,8 @@ public final class ConfigurationEditor extends SettingsEditor<ESBenchRunConfig> 
 	}
 
 	@Override
-	protected @NotNull JComponent createEditor() {
+	@NotNull
+	protected JComponent createEditor() {
 		return new FormBuilder().setAlignLabelOnRight(false)
 				.addLabeledComponent("&Configuration file:", configFile)
 				.addSeparator(8)
