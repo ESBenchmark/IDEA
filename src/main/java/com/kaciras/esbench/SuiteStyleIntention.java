@@ -63,26 +63,24 @@ public final class SuiteStyleIntention extends PsiElementBaseIntentionAction {
 		return ESBenchUtils.hasImportDefineSuite(call.getContainingFile()) ? args[0] : null;
 	}
 
+	@SuppressWarnings("DataFlowIssue")
 	@Override
 	public void invoke(@NotNull Project project, Editor editor, @NotNull PsiElement element) {
-		JSExpression expression;
+		JSExpression newStyle;
 		var suite = getRawSuite(element);
 
 		if (suite instanceof JSFunctionExpression setup) {
-			var method = JSFunctionsRefactoringUtil.createFunctionProperty(setup, "setup");
-			var result = JSPsiElementFactory.createJSExpression('{' + method.getText() + '}', method, JSObjectLiteralExpression.class);
-			expression = JSChangeUtil.replaceExpression(setup, result);
+			var fp = JSFunctionsRefactoringUtil.createFunctionProperty(setup, "setup");
+			var object = JSPsiElementFactory.createJSExpression("{x(){}}", fp, JSObjectLiteralExpression.class);
+			newStyle = object;
+			object.getFirstProperty().replace(fp);
 		} else {
 			var object = (JSObjectLiteralExpression) suite;
 			var setup = object.getFirstProperty();
-
-			//
-			assert setup != null;
-
-			var arrowFn = JSFunctionsRefactoringUtil.createArrowFunction((JSFunction) setup);
-			expression = JSChangeUtil.replaceExpression(suite, arrowFn);
+			newStyle = JSFunctionsRefactoringUtil.createArrowFunction((JSFunction) setup);
 		}
 
+		var expression = JSChangeUtil.replaceExpression(suite, newStyle);
 		JSRefactoringUtil.reformatElementWithoutBody(expression, expression);
 	}
 }
