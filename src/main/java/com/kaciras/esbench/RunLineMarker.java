@@ -1,9 +1,7 @@
 package com.kaciras.esbench;
 
 import com.intellij.execution.lineMarker.RunLineMarkerContributor;
-import com.intellij.lang.ecmascript6.psi.JSExportAssignment;
 import com.intellij.lang.javascript.psi.JSCallExpression;
-import com.intellij.lang.javascript.psi.JSReferenceExpression;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -42,33 +40,26 @@ public final class RunLineMarker extends RunLineMarkerContributor {
 	 */
 	@Nullable
 	public static String detectEntryPoint(LeafPsiElement leaf) {
-		// First check the element is a method call.
-		if (!(leaf.getParent() instanceof JSReferenceExpression ref)) {
-			return null;
-		}
-		if (!(ref.getParent() instanceof JSCallExpression top)) {
-			return null;
+		var call = ESBenchUtils.getCallFromLeaf(leaf);
+		if (call == null) {
+			return null; // The element is not a function call.
 		}
 		var function = leaf.getChars();
 		var description = "Suite";
 
-		// If is bench() or benchAsync(), find the topmost call.
 		if (function.equals(BENCH_1) || function.equals(BENCH_2)) {
-			description = ESBenchUtils.getBenchName(top);
+			description = ESBenchUtils.getBenchName(call);
 			if (description == null) {
 				return null; // Arguments is invalid.
 			}
-			top = PsiTreeUtil.getTopmostParentOfType(top, JSCallExpression.class);
-			if (top == null) {
+			call = PsiTreeUtil.getTopmostParentOfType(call, JSCallExpression.class);
+			if (call == null) {
 				return null; // Not inside defineSuite().
 			}
 			description = '"' + description + '"';
 		}
 
-		// The topmost statement should be `export default defineSuite()`
-		if (!ESBenchUtils.getMethodName(top).equals(DEFINE_SUITE)) {
-			return null;
-		}
-		return top.getParent() instanceof JSExportAssignment ? description : null;
+		// The topmost statement must be `export default defineSuite()`
+		return ESBenchUtils.isExportDefineSuite(call) ? description : null;
 	}
 }

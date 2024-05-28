@@ -1,7 +1,6 @@
 package com.kaciras.esbench;
 
 import com.intellij.codeInsight.intention.PsiElementBaseIntentionAction;
-import com.intellij.lang.ecmascript6.psi.JSExportAssignment;
 import com.intellij.lang.javascript.psi.*;
 import com.intellij.lang.javascript.psi.impl.JSChangeUtil;
 import com.intellij.lang.javascript.psi.impl.JSPsiElementFactory;
@@ -43,26 +42,18 @@ public final class SuiteStyleIntention extends PsiElementBaseIntentionAction {
 	}
 
 	private static JSExpression getRawSuite(PsiElement leaf) {
-		if (!(leaf.getParent() instanceof JSReferenceExpression ref)) {
-			return null;
-		}
-		if (!(ref.getParent() instanceof JSCallExpression call)) {
-			return null;
-		}
-		if (!(call.getParent() instanceof JSExportAssignment)) {
-			return null;
-		}
-		var name = ESBenchUtils.getMethodName(call);
-		if (!ESBenchUtils.DEFINE_SUITE.equals(name)) {
+		var call = ESBenchUtils.getCallFromLeaf(leaf);
+		if (call == null || !ESBenchUtils.isExportDefineSuite(call)) {
 			return null;
 		}
 		var args = call.getArguments();
 		if (args.length != 1) {
-			return null; // Not only 1 argument in defineSuite().
+			return null; // defineSuite() should only accept 1 argument.
 		}
 		return ESBenchUtils.hasImportDefineSuite(call.getContainingFile()) ? args[0] : null;
 	}
 
+	// Some of the checks have already been done in `isAvailable`.
 	@SuppressWarnings("DataFlowIssue")
 	@Override
 	public void invoke(@NotNull Project project, Editor editor, @NotNull PsiElement element) {
@@ -75,8 +66,7 @@ public final class SuiteStyleIntention extends PsiElementBaseIntentionAction {
 			newStyle = object;
 			object.getFirstProperty().replace(fp);
 		} else {
-			var object = (JSObjectLiteralExpression) suite;
-			var setup = object.getFirstProperty();
+			var setup = ((JSObjectLiteralExpression) suite).getFirstProperty();
 			newStyle = JSFunctionsRefactoringUtil.createArrowFunction((JSFunction) setup);
 		}
 

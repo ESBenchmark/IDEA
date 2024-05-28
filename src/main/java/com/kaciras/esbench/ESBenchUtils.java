@@ -1,11 +1,13 @@
 package com.kaciras.esbench;
 
 import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.lang.ecmascript6.psi.JSExportAssignment;
 import com.intellij.lang.ecmascript6.psi.impl.ES6ImportPsiUtil;
 import com.intellij.lang.javascript.psi.JSCallExpression;
 import com.intellij.lang.javascript.psi.JSLiteralExpression;
 import com.intellij.lang.javascript.psi.JSReferenceExpression;
 import com.intellij.openapi.util.text.Strings;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 
@@ -27,6 +29,11 @@ public final class ESBenchUtils {
 	//@formatter:off
 	private ESBenchUtils() {}
 
+	static JSCallExpression getCallFromLeaf(PsiElement psi) {
+		return psi.getParent() instanceof JSReferenceExpression ref
+			&& ref.getParent() instanceof JSCallExpression call ? call : null;
+	}
+
 	/**
 	 * Check if both configs are ESBenchRunConfig and created from the same element.
 	 */
@@ -39,6 +46,14 @@ public final class ESBenchUtils {
 			&& a.workingDir.equals(b.workingDir);
 	}
 	//@formatter:on
+
+	/**
+	 * Check the statement of the call is `export default defineSuite()`
+	 */
+	public static boolean isExportDefineSuite(JSCallExpression call) {
+		return call.getParent() instanceof JSExportAssignment
+				&& DEFINE_SUITE.equals(getMethodName(call));
+	}
 
 	/**
 	 * Get the function name of the call, return empty string if it does not have a name.
