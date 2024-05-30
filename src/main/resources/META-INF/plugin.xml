@@ -1,8 +1,17 @@
 <idea-plugin>
 	<id>com.kaciras.esbench</id>
 	<name>ESBench</name>
-	<description>Run ESBench suites by clicking on the line marker</description>
 	<vendor url="https://github.com/ESBenchmark/IDEA">Kaciras</vendor>
+
+	<description><![CDATA[
+		Provides support for <a href="https://esbench.vercel.app/">ESBench</a> to make writing and running benchmarks easier.
+		<h2>Features</h2>
+		<ul>
+		  <li>Run marker on benchmark suites and cases</li>
+		  <li>Intentions for refactoring suites</li>
+		  <li>Avoid unused export warning for config files</li>
+		</ul>
+]]></description>
 
 	<depends>com.intellij.modules.platform</depends>
 	<depends>NodeJS</depends>

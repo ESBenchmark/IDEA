@@ -2,6 +2,10 @@
 
 [Marketplace](https://plugins.jetbrains.com/plugin/24361-esbench/edit)
 
-WebStorm plugin to run [ESBench](https://github.com/ESBenchmark/ESBench) suites with a click of the mouse.
+Provides support for [ESBench](https://github.com/ESBenchmark/ESBench) to make writing and running benchmarks easier.
+
+* Run marker on benchmark suites and cases.
+* Intentions for refactoring suites.
+* Avoid unused export warning for config files.
 
 ![Screenshot](https://github.com/ESBenchmark/IDEA/raw/master/screenshot.png)
