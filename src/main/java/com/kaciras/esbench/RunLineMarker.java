@@ -26,9 +26,11 @@ public final class RunLineMarker extends RunLineMarkerContributor {
 		if (!hasImportDefineSuite(element.getContainingFile())) {
 			return null; // The file must have import defineSuite from ESBench.
 		}
-		var run = new ESBenchAction("Run " + description, false);
-		var debug = new ESBenchAction("Debug " + description, true);
-		return new Info(Run, x -> "Run Benchmark", run, debug);
+		var actions = new ESBenchAction[]{
+				new ESBenchAction("Run " + description, false),
+				new ESBenchAction("Debug " + description, true)
+		};
+		return new Info(Run, actions, x -> "Run Benchmark");
 	}
 
 	/**
