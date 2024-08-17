@@ -1,42 +1,40 @@
 plugins {
     id("java")
-    id("org.jetbrains.intellij") version "1.17.3"
+    id("org.jetbrains.intellij.platform") version "2.0.1"
 }
 
 group = "com.kaciras.esbench"
 version = "1.1.0"
 
 repositories {
+    intellijPlatform {
+        defaultRepositories()
+    }
     mavenCentral()
 }
 
-intellij {
-    version.set("2023.3")
-
-    // Target IDE Platform, IU = Intellij Ultimate
-    type.set("IU")
-
-    plugins.set(listOf("JavaScript", "NodeJS"))
+// Target IDE Platform, IU = Intellij Ultimate
+dependencies {
+    intellijPlatform {
+        create("IU", "2023.3")
+        bundledPlugins(listOf("JavaScript", "NodeJS"))
+        javaCompiler()
+    }
 }
 
-tasks {
-    withType<JavaCompile> {
-        sourceCompatibility = "17"
-        targetCompatibility = "17"
+intellijPlatform {
+    pluginConfiguration {
+        ideaVersion {
+            sinceBuild = "233"
+            untilBuild = ""
+        }
     }
-
-    patchPluginXml {
-        sinceBuild.set("233")
-        untilBuild.set("")
+    signing {
+        privateKey = System.getenv("PRIVATE_KEY")
+        password = System.getenv("PRIVATE_KEY_PASSWORD")
+        certificateChain = System.getenv("CERTIFICATE_CHAIN")
     }
-
-    signPlugin {
-        certificateChain.set(System.getenv("CERTIFICATE_CHAIN"))
-        privateKey.set(System.getenv("PRIVATE_KEY"))
-        password.set(System.getenv("PRIVATE_KEY_PASSWORD"))
-    }
-
-    publishPlugin {
-        token.set(System.getenv("PUBLISH_TOKEN"))
+    publishing {
+        token = System.getenv("PUBLISH_TOKEN")
     }
 }
