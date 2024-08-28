@@ -35,7 +35,7 @@ public class ESBenchRunConfig extends AbstractNodeTargetRunProfile implements No
 	@NotNull
 	public NodeJsInterpreterRef interpreterRef = NodeJsInterpreterRef.createProjectRef();
 	@NotNull
-	public String nodeOptions = "";
+	public String nodeOptions = "--experimental-import-meta-resolve";
 	@Nullable
 	public NodePackage esbenchPackage;
 	@NotNull
